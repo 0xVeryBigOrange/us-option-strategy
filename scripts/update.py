@@ -61,6 +61,28 @@ def bs_put_delta(S, K, T, s):
     return N.cdf(d1) - 1
 
 
+def nasdaq_earn(t):
+    """第二数据源：Nasdaq 的下一次财报日期（带 * 为预计）。拿不到返回 None。"""
+    import re, urllib.request
+    try:
+        req = urllib.request.Request(f"https://api.nasdaq.com/api/analyst/{t}/earnings-date",
+                                     headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+        txt = json.load(urllib.request.urlopen(req, timeout=10))["data"]["announcement"]
+        m = re.search(r"([A-Z][a-z]{2}) (\d{1,2}), (\d{4})", txt)
+        if not m:
+            return None
+        d = dt.datetime.strptime(" ".join(m.groups()), "%b %d %Y").date()
+        return dict(date=d.isoformat(), est="*" in txt)
+    except Exception:
+        return None
+
+
+def bs_pitm(S, K, T, s):
+    """到期被行权（股价低于行权价）的风险中性概率 N(-d2)。"""
+    d2 = (math.log(S / K) + (R - s * s / 2) * T) / (s * math.sqrt(T))
+    return N.cdf(-d2)
+
+
 # ---------------- 基本面（每天刷新一次，缓存到 fundamentals.json） ----------------
 def load_fund(force=False):
     cache = {}
@@ -69,7 +91,7 @@ def load_fund(force=False):
     fresh_cut = time.time() - 20 * 3600
     for t in POOL + list(CRYPTO):
         c = cache.get(t)
-        if c and c.get("_ts", 0) > fresh_cut and not force:
+        if c and c.get("_ts", 0) > fresh_cut and "eps0" in c and not force:
             continue
         try:
             T = yf.Ticker(t)
@@ -99,6 +121,8 @@ def load_fund(force=False):
                 tpe=i.get("trailingPE"), fpe=i.get("forwardPE"), roe=i.get("returnOnEquity"),
                 om=i.get("operatingMargins"), rg=i.get("revenueGrowth"),
                 earn=i.get("earningsTimestampStart") or i.get("earningsTimestamp"),
+                earn_est=i.get("isEarningsDateEstimate"), nq_earn=nasdaq_earn(t) if i.get("quoteType") != "ETF" else None,
+                eps0=i.get("epsCurrentYear"), eps1=i.get("forwardEps"), nfye=i.get("nextFiscalYearEnd"),
                 tgt=i.get("targetMeanPrice"), rec=i.get("recommendationKey"))
             print("fund ok", t, flush=True)
         except Exception as e:
@@ -147,14 +171,21 @@ def pick_put(t, S, today):
     if q.empty:
         return None
     q["delta"] = [bs_put_delta(S, k, Ty, s) for k, s in zip(q.strike, q.sig)]
-    row = q.iloc[(q.delta - TARGET_DELTA).abs().argsort()[:1]].iloc[0]
+    # 在 Delta -0.20 ~ -0.30 之间优先选买卖价差 ≤15% 的合约（中间价更可能成交），再取最接近 -0.25 的
+    q["spr_"] = (q.ask - q.bid) / ((q.ask + q.bid) / 2) if quote == "mid" else 0
+    band = q[(q.delta <= -0.20) & (q.delta >= -0.30)]
+    good = band[band.spr_ <= 0.15]
+    pool = good if len(good) else q
+    row = pool.iloc[(pool.delta - TARGET_DELTA).abs().argsort()[:1]].iloc[0]
     K, prem = float(row.strike), float(row.prem)
     if prem <= 0 or prem >= K:
         return None
-    return dict(exp=e, dte=dte, k=K, bid=num(row.bid), ask=num(row.ask), prem=num(prem), quote=quote,
+    return dict(exp=e, dte=dte, k=K, bid=num(row.bid), ask=num(row.ask), prem=num(prem, 3), quote=quote,
+                pitm=num(bs_pitm(S, K, Ty, float(row.sig)) * 100, 0),
+                per=num(prem / (K - prem) * 100, 2),
                 dl=num(row.delta), piv=num(row.sig * 100, 1), iv=num(atm * 100, 1) if atm else None,
                 otm=num((1 - K / S) * 100, 1), ann=num(prem / (K - prem) * 365 / dte * 100, 1),
-                cost=num(K - prem), cash=int(round(K * 100)),
+                cost=num(K - prem, 3), cash=int(round(K * 100)),
                 oi=None if pd.isna(row.openInterest) else int(row.openInterest),
                 spr=num((row.ask - row.bid) / ((row.ask + row.bid) / 2) * 100, 1) if quote == "mid" else None,
                 vol=None if pd.isna(row.volume) else int(row.volume))
@@ -180,13 +211,19 @@ def reasons(r, pct):
     return "；".join(x[1] for x in cands[:2])
 
 
+def earn_txt(r):
+    d = dt.date.fromisoformat(r["earn"])
+    return f"到期前{'预计' if r.get('earn_est') else ''} {d.month}/{d.day} 发财报，可能跳空"
+
+
 def risks(r):
     out = []
     if r["ein"] and r["earn"]:
-        d = dt.date.fromisoformat(r["earn"])
-        out.append(f"到期前 {d.month}/{d.day} 发财报，可能跳空")
+        out.append(earn_txt(r))
+    if r.get("spr") is not None and r["spr"] > 15:
+        out.append(f"买卖价差 {r['spr']:.0f}%，中间价不一定成交，实际权利金可能更少")
     if r["fpe"] and r["tpe"] and r["fpe"] < r["tpe"] * 0.5:
-        out.append(f"远期PE {r['fpe']:.1f} 倍是基于分析师预期明年盈利大增（当前PE {r['tpe']:.0f} 倍），周期股低PE可能出现在盈利高点")
+        out.append(f"远期PE {r['fpe']:.1f} 倍建立在分析师预期盈利大增上（当前PE {r['tpe']:.0f} 倍），预期落空估值会被重估")
     if r["hv"] and r["hv"] >= 55:
         out.append(f"过去一年实际波动 {r['hv']:.0f}%，股价大起大落")
     if r["m1"] is not None and r["m1"] <= -15:
@@ -200,7 +237,7 @@ def risks(r):
     if r["cash"] >= 50000:
         out.append(f"一张需备 ${r['cash']:,} 现金，资金门槛高")
     if not out:
-        out.append(f"若跌破 ${r['cost']:,} 接货价将出现浮亏")
+        out.append(f"若跌破接货价 ${r['cost']:,.2f} 将出现浮亏")
     return "；".join(out[:2])
 
 
@@ -238,8 +275,7 @@ KIND_RISK = {
 def risks_crypto(r):
     out = [KIND_RISK[r["kind"]].format(coin=COIN_NAME.get(r["coin"], ""))]
     if r["ein"] and r["earn"]:
-        d = dt.date.fromisoformat(r["earn"])
-        out.insert(0, f"到期前 {d.month}/{d.day} 发财报，可能跳空")
+        out.insert(0, earn_txt(r))
     if r.get("spr") is not None and (r["spr"] > 6 or (r["oi"] or 0) < 300):
         out.append(f"该行权价持仓量 {r['oi'] or 0}、价差 {r['spr']:.1f}%，成交可能有滑点，用限价单")
     if r["hv"] and r["hv"] >= 90:
@@ -266,19 +302,37 @@ def base_row(t, f, s, today, n_hv=252):
     f = f or {}
     mcap = f.get("mcap")
     nc = ((f.get("cash") or 0) - (f.get("debt") or 0)) if f.get("cash") is not None else None
-    earn = None
+    # 财报日：Yahoo + Nasdaq 两个来源，取最早的未来日期（保守）；任一来源标“预计”或两者不一致 → 标为预计
+    srcs = []
     if f.get("earn"):
         ed = dt.datetime.fromtimestamp(int(f["earn"]), dt.timezone.utc).astimezone(ET).date()
-        earn = ed.isoformat() if ed >= today else None
+        if ed >= today:
+            srcs.append((ed.isoformat(), bool(f.get("earn_est"))))
+    nq = f.get("nq_earn")
+    if nq and nq["date"] >= today.isoformat():
+        srcs.append((nq["date"], nq["est"]))
+    earn, earn_est, earn_alt = None, False, None
+    if srcs:
+        srcs.sort()
+        earn, earn_est = srcs[0]
+        if len({x[0] for x in srcs}) > 1:
+            earn_est, earn_alt = True, srcs[-1][0]
+    # 远期 PE：按财年剩余时间混合“本财年 + 下财年”EPS，近似未来 12 个月（NTM）
+    fpe = f.get("fpe")
+    e0, e1, nfye = f.get("eps0"), f.get("eps1"), f.get("nfye")
+    if e0 is not None and e1 is not None and nfye:
+        w = min(max((nfye - time.time()) / (365 * 86400), 0), 1)
+        ntm = w * e0 + (1 - w) * e1
+        fpe = S / ntm if ntm > 0 else None
     r = dict(t=t, n=f.get("name"), sec=f.get("sector"), px=num(S), w1=chg(s, 5), m1=chg(s, 21),
-             dd=num((S / float(last.max()) - 1) * 100, 1), tpe=num(f.get("tpe"), 1), fpe=num(f.get("fpe"), 1),
+             dd=num((S / float(last.max()) - 1) * 100, 1), tpe=num(f.get("tpe"), 1), fpe=num(fpe, 1),
              fcfy=num(f["fcf"] / mcap * 100, 1) if f.get("fcf") and mcap else None,
              nc=num(nc / 1e8, 0) if nc is not None else None,  # 单位：亿美元
              ncr=(nc / mcap) if nc is not None and mcap else None,
              roe=num(f["roe"] * 100, 0) if f.get("roe") is not None else None,
              om=num(f["om"] * 100, 0) if f.get("om") is not None else None,
              rg=num(f["rg"] * 100, 0) if f.get("rg") is not None else None,
-             hv=num(hv, 1), tgt=num(f.get("tgt")), rec=f.get("rec"), earn=earn, mcap=mcap, **o)
+             hv=num(hv, 1), tgt=num(f.get("tgt")), rec=f.get("rec"), earn=earn, earn_est=earn_est, earn_alt=earn_alt, mcap=mcap, **o)
     r["ivhv"] = num(r["iv"] / r["hv"], 2) if r["iv"] and r["hv"] else None
     r["ein"] = bool(earn and earn <= o["exp"])
     r["upside"] = num((r["tgt"] / S - 1) * 100, 1) if r["tgt"] else None

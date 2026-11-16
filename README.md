@@ -5,6 +5,9 @@
 🌐 网站：https://0xverybigorange.github.io/us-option-strategy/
 🐦 作者：[@0xVeryBigOrange](https://x.com/0xVeryBigOrange)
 
+## 理念
+Sell Put 的核心，是你本来就想在这个价格买这只股票；权利金只是顺便收的，用来降低抄底成本。不想持有的股票，年化再高也别卖。现金担保，不加杠杆。
+
 ## 内容
 - 每只标的的 **权利金年化收益**、行权价、到期日、权利金、价外幅度、接货价、所需现金
 - 入选理由 + 主要风险，综合推荐 / 年化 / 跌幅 / 估值 / IV 溢价 五种排序，一键避开财报

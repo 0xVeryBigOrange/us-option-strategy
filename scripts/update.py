@@ -18,7 +18,14 @@ ET, SGT = ZoneInfo("America/New_York"), ZoneInfo("Asia/Singapore")
 # 候选池：大盘优质股（盈利、现金流为正为主），按需增减
 POOL = ("NVDA GOOGL META MSFT AMZN AAPL NOW CRM ADBE CSCO ASML MU CAT NFLX MELI FTNT AMAT KLAC LRCX "
         "AVGO AMD ORCL DELL MRVL CMI INTU QCOM TXN PANW TSM EXPE GEV ETN V MA UNH ACN IBM PYPL NKE "
-        "LULU CMG SBUX REGN BKNG ADP COST").split()
+        "LULU CMG SBUX REGN BKNG ADP COST SKHY").split()
+# 美股上市不足一年的标的：允许 ≥60 个交易日，波动率/回撤用上市以来的数据，页面标注“上市不足一年”
+SHORT_HISTORY = {"SKHY"}
+# ADR：计算相对本土股价的溢价（ratio = 1 份 ADR 对应的本土股数）
+ADR = {"SKHY": dict(local="000660.KS", fx="KRW=X", ratio=0.1, local_name="首尔")}
+# 行业特征的固定说明（数字部分仍由模板实时生成）
+EXTRA_WHY = {"SKHY": "HBM/AI 存储龙头"}
+EXTRA_RISK = {"SKHY": "存储是强周期行业，和 MU 一样低PE可能出现在盈利高点"}
 # Crypto 板块：不套用价值股剔除规则。kind: etf / treasury / exchange / stablecoin / broker / miner
 CRYPTO = {
     "IBIT": dict(kind="etf", coin="BTC", label="比特币 ETF"),
@@ -195,10 +202,10 @@ def pick_put(t, S, today):
 def reasons(r, pct):
     cands = []
     if r["ivhv"] is not None:
-        cands.append((pct["ivhv"], f"IV 是过去一年实际波动的 {r['ivhv']:.2f} 倍，期权偏贵，卖方占优"
+        cands.append((pct["ivhv"], f"IV 是{'上市以来' if r.get('short_hist') else '过去一年'}实际波动的 {r['ivhv']:.2f} 倍，期权偏贵，卖方占优"
                        if r["ivhv"] >= 1 else f"隐含波动率 {r['iv']:.0f}%，权利金厚"))
     if r["dd"] is not None:
-        cands.append((pct["dd"], f"较一年高点回撤 {abs(r['dd']):.0f}%，价格已打折"))
+        cands.append((pct["dd"], f"较{'上市以来' if r.get('short_hist') else '一年'}高点回撤 {abs(r['dd']):.0f}%，价格已打折"))
     if r["fpe"]:
         cands.append((pct["fpe"], f"远期市盈率仅 {r['fpe']:.1f} 倍，估值便宜"))
     if r["fcfy"] is not None:
@@ -225,7 +232,7 @@ def risks(r):
     if r["fpe"] and r["tpe"] and r["fpe"] < r["tpe"] * 0.5:
         out.append(f"远期PE {r['fpe']:.1f} 倍建立在分析师预期盈利大增上（当前PE {r['tpe']:.0f} 倍），预期落空估值会被重估")
     if r["hv"] and r["hv"] >= 55:
-        out.append(f"过去一年实际波动 {r['hv']:.0f}%，股价大起大落")
+        out.append(f"{'上市以来' if r.get('short_hist') else '过去一年'}实际波动 {r['hv']:.0f}%，股价大起大落")
     if r["m1"] is not None and r["m1"] <= -15:
         out.append(f"近一月仍跌 {abs(r['m1']):.0f}%，下跌趋势未止")
     if r["oi"] is not None and r["oi"] < 300:
@@ -355,13 +362,27 @@ def build_value(px, fund, today, notes):
     for t in POOL:
         f = fund.get(t)
         s = px[t].dropna() if t in px else pd.Series(dtype=float)
-        if not f or len(s) < 200:
-            print("skip(no data)", t); continue
+        min_bars = 60 if t in SHORT_HISTORY else 200
+        if not f or len(s) < min_bars:
+            print("skip(no data)", t, len(s)); continue
         # 质量过滤：FCF 为负 / 股东权益为负 / 亏损 —— 剔除
         if (f.get("fcf") is not None and f["fcf"] <= 0) or (f.get("book") is not None and f["book"] <= 0) \
                 or (f.get("ni") is not None and f["ni"] <= 0) or (f.get("eps") is not None and f["eps"] <= 0):
             print("filtered", t); continue
         r = base_row(t, f, s, today)
+        if r and t in SHORT_HISTORY and len(s) < 252:
+            r["short_hist"], r["listed"] = True, str(s.index[0].date())
+        if r and t in ADR:
+            a = ADR[t]
+            try:
+                loc, fx = px[a["local"]].dropna(), px[a["fx"]].dropna()
+                parity = float(loc.iloc[-1]) * a["ratio"] / float(fx.iloc[-1])
+                r["adr_prem"] = num((float(s.iloc[-1]) / parity - 1) * 100, 1)
+                r["adr_local"] = a["local_name"]
+                if r.get("fpe"):
+                    r["fpe_local"] = num(r["fpe"] / (1 + r["adr_prem"] / 100), 1)  # 按本土股价折算的远期PE
+            except Exception as e:
+                print("adr ERR", t, e)
         if r:
             rows.append(r); print("ok", t, r["k"], r["prem"], r["ann"], flush=True)
         time.sleep(0.3)
@@ -383,6 +404,16 @@ def build_value(px, fund, today, notes):
         r = clean(r)
         r["why"] = notes.get(r["t"], {}).get("why") or reasons(r, pct)
         r["risk"] = notes.get(r["t"], {}).get("risk") or risks(r)
+        t = r["t"]
+        if t in EXTRA_WHY and not notes.get(t, {}).get("why"):
+            r["why"] = EXTRA_WHY[t] + "；" + r["why"]
+        if t in EXTRA_RISK and not notes.get(t, {}).get("risk"):
+            extra = [EXTRA_RISK[t]]
+            if r.get("adr_prem") is not None and r["adr_prem"] > 10:
+                extra.append(f"ADR 比{r['adr_local']}股价贵 {r['adr_prem']:.0f}%，溢价收窄会额外下跌")
+            # 去掉模板里与周期股提示重复的“远期PE…重估”
+            rest = [x for x in r["risk"].split("；") if "预期落空估值" not in x]
+            r["risk"] = "；".join((extra + rest)[:3])
         r["rank"] = i + 1
         items.append(r)
     return items, len(rows)
@@ -445,7 +476,8 @@ def main():
 
     idx = ["SPY", "QQQ", "SMH", "^VIX"]
     cc = ["BTC-USD", "ETH-USD"]
-    px = retry(lambda: yf.download(POOL + list(CRYPTO) + idx + cc, period="13mo", auto_adjust=True,
+    adr_ex = sorted({a["local"] for a in ADR.values()} | {a["fx"] for a in ADR.values()})
+    px = retry(lambda: yf.download(POOL + list(CRYPTO) + idx + cc + adr_ex, period="13mo", auto_adjust=True,
                                    progress=False, threads=True))["Close"]
     asof = px["SPY"].dropna().index[-1].date()
 

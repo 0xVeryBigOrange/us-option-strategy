@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="zh-CN" class="bg-[#09090b]">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>大橙子推荐的美股 Option 策略 · Sell Put 抄底排行榜</title>
+<meta name="description" content="学巴菲特、段永平用 Sell Put 抄底优质美股：每只标的的权利金年化收益、行权价、接货价、入选理由与风险，美股交易日每小时自动更新。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="大橙子推荐的美股 Option 策略 🍊 Sell Put 抄底排行榜">
+<meta property="og:description" content="优质美股 Sell Put 年化收益排行：行权价、权利金、接货价、入选理由与风险，交易日每小时自动更新。">
+<meta property="og:image" content="https://0xverybigorange.github.io/us-option-strategy/og.png">
+<meta property="og:url" content="https://0xverybigorange.github.io/us-option-strategy/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@0xVeryBigOrange">
+<meta name="twitter:title" content="大橙子推荐的美股 Option 策略 🍊 Sell Put 抄底排行榜">
+<meta name="twitter:description" content="优质美股 Sell Put 年化收益排行，交易日每小时自动更新。">
+<meta name="twitter:image" content="https://0xverybigorange.github.io/us-option-strategy/og.png">
+<meta name="theme-color" content="#09090b">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍊</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']},colors:{brand:{DEFAULT:'#ff7a1a',soft:'#ff9a4d'}}}}}
+</script>
+<style>
+  body{font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
+  .glow{background:radial-gradient(60% 50% at 50% 0%,rgba(255,122,26,.18),transparent 70%)}
+  .num{font-variant-numeric:tabular-nums}
+  .ann{background:linear-gradient(180deg,#ffb26b 0%,#ff7a1a 60%,#f05a00 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.07);transition:border-color .2s,transform .2s}
+  .card:hover{border-color:rgba(255,122,26,.35);transform:translateY(-2px)}
+  .pill[aria-pressed="true"]{background:#ff7a1a;color:#111;border-color:#ff7a1a}
+  .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
+  .tip{border-bottom:1px dotted rgba(255,255,255,.3);cursor:help}
+</style>
+</head>
+<body class="text-zinc-200 font-sans min-h-screen">
+<div class="glow absolute inset-x-0 top-0 h-[520px] pointer-events-none"></div>
+<div class="relative max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between pt-6 sm:pt-8">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-brand grid place-items-center text-lg shadow-[0_0_24px_rgba(255,122,26,.45)]">🍊</div>
+      <div class="leading-tight">
+        <div class="text-[13px] font-semibold text-white whitespace-nowrap">Big Orange Options</div>
+        <div class="text-[11px] text-zinc-500 whitespace-nowrap">US Sell Put Playbook</div>
+      </div>
+    </div>
+    <a href="https://x.com/0xVeryBigOrange" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-[12px] sm:text-[13px] text-zinc-200 transition whitespace-nowrap">
+      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      <span class="hidden sm:inline">关注</span>@0xVeryBigOrange
+    </a>
+  </header>
+
+  <!-- Hero -->
+  <section class="pt-10 sm:pt-14 pb-6">
+    <div class="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-[12px] text-brand-soft">
+      <span id="live-dot" class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+      <span id="session">数据加载中…</span>
+    </div>
+    <h1 class="mt-4 text-[34px] leading-[1.1] sm:text-6xl font-extrabold tracking-tight text-white">
+      大橙子推荐的<br class="sm:hidden">美股 <span class="ann">Option</span> 策略
+    </h1>
+    <p class="mt-3 text-[15px] sm:text-lg text-zinc-400 max-w-2xl">像巴菲特、段永平一样用 <b class="text-zinc-200">Sell Put</b> 抄底优质公司：要么白赚权利金，要么以打折价买到好股票。</p>
+
+    <!-- Stats -->
+    <div class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="card rounded-2xl p-4 sm:p-5">
+        <div class="text-[12px] text-zinc-500">前 5 名平均年化</div>
+        <div id="s-top5" class="mt-1 text-3xl sm:text-4xl font-extrabold ann num">—</div>
+      </div>
+      <div class="card rounded-2xl p-4 sm:p-5">
+        <div class="text-[12px] text-zinc-500">全榜平均年化</div>
+        <div id="s-avg" class="mt-1 text-3xl sm:text-4xl font-extrabold text-white num">—</div>
+      </div>
+      <div class="card rounded-2xl p-4 sm:p-5">
+        <div class="text-[12px] text-zinc-500">入选 / 候选池</div>
+        <div id="s-pool" class="mt-1 text-3xl sm:text-4xl font-extrabold text-white num">—</div>
+      </div>
+      <div class="card rounded-2xl p-4 sm:p-5">
+        <div class="text-[12px] text-zinc-500">更新时间（新加坡）</div>
+        <div id="s-time" class="mt-1 text-xl sm:text-2xl font-bold text-white num">—</div>
+        <div id="s-asof" class="text-[11px] text-zinc-500 mt-0.5"></div>
+      </div>
+    </div>
+    <div class="mt-3 card rounded-2xl px-4 py-3 text-[13px] sm:text-sm text-zinc-400 flex gap-2">
+      <span class="text-brand shrink-0">市场</span><span id="ctx">—</span>
+    </div>
+  </section>
+
+  <!-- Controls -->
+  <section class="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-[#09090b]/85 backdrop-blur border-b border-white/5">
+    <div class="flex items-center gap-3 justify-between">
+      <div id="sorts" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
+      <label class="shrink-0 flex items-center gap-2 text-[13px] text-zinc-300 cursor-pointer select-none">
+        <span class="hidden sm:inline">避开财报</span><span class="sm:hidden">避财报</span>
+        <input id="noearn" type="checkbox" class="peer sr-only">
+        <span class="w-10 h-6 rounded-full bg-white/10 relative transition peer-checked:bg-brand after:content-[''] after:absolute after:top-1 after:left-1 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></span>
+      </label>
+    </div>
+  </section>
+
+  <div id="list" class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+  <div id="empty" class="hidden text-center text-zinc-500 py-16">暂无数据</div>
+
+  <!-- Method -->
+  <section class="mt-16 grid gap-4 md:grid-cols-2">
+    <div class="card rounded-2xl p-5 sm:p-6">
+      <h3 class="text-white font-bold mb-3">怎么读这张卡片</h3>
+      <ul class="text-[13px] leading-6 text-zinc-400 space-y-1.5">
+        <li><b class="text-zinc-200">年化收益</b>：权利金 ÷（行权价 − 权利金）× 365 ÷ 剩余天数。假设到期不被行权，按资金占用折算的年化。</li>
+        <li><b class="text-zinc-200">接货价</b>：被行权时的实际成本 = 行权价 − 权利金。</li>
+        <li><b class="text-zinc-200">所需现金</b>：现金担保卖出 1 张（100 股）需要准备的资金 = 行权价 × 100。</li>
+        <li><b class="text-zinc-200">价外幅度</b>：股价要跌多少才会到行权价。</li>
+        <li><b class="text-zinc-200">IV 溢价</b>：平值隐含波动率 ÷ 过去一年实际波动率，大于 1 说明期权偏贵，卖方更占优。</li>
+      </ul>
+    </div>
+    <div class="card rounded-2xl p-5 sm:p-6">
+      <h3 class="text-white font-bold mb-3">筛选方法</h3>
+      <ul class="text-[13px] leading-6 text-zinc-400 space-y-1.5">
+        <li>候选池：约 50 只美股大盘优质公司；剔除自由现金流为负、股东权益为负、亏损的公司。</li>
+        <li>期权：选 30–45 天到期（优先月度合约），用 Black-Scholes 找 Delta ≈ −0.25 的 Put；权利金取买卖价中间价。</li>
+        <li>综合分 100 = 质量 30（ROE、利润率、净现金、增长）+ 估值 30（远期市盈率、自由现金流收益率）+ 波动率 20（IV 溢价、IV 水平）+ 跌幅 20（距一年高点回撤）。</li>
+        <li>数据来自 Yahoo Finance，期权报价可能有 15 分钟延迟；美股交易日盘中每小时、收盘后各自动刷新一次。拿不到的数据显示“暂无”。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="mt-10 text-center text-[12px] text-zinc-500 leading-6">
+    <p class="text-zinc-400">⚠️ 仅供学习参考，不构成投资建议。卖出 Put 有被行权接股、股价继续下跌的风险，请量力而行。</p>
+    <p class="mt-2">Made with 🍊 by <a class="text-brand-soft hover:underline" href="https://x.com/0xVeryBigOrange" target="_blank" rel="noopener">@0xVeryBigOrange</a> · <a class="hover:underline" href="https://github.com/0xVeryBigOrange/us-option-strategy" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+</div>
+
+<script>
+const SORTS=[['score','综合推荐'],['ann','年化收益'],['dd','跌幅'],['val','估值'],['ivhv','IV 溢价']];
+let DATA=null, sortKey='score', noEarn=false;
+const $=s=>document.querySelector(s);
+const na='<span class="text-zinc-600">暂无</span>';
+const f=(v,d=2)=>v==null?null:Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=(v,d=1,sign=false)=>v==null?na:(sign&&v>0?'+':'')+f(v,d)+'%';
+const usd=(v,d=2)=>v==null?na:'$'+f(v,d);
+const md=s=>{if(!s)return null;const[y,m,d]=s.split('-');return `${+m}/${+d}`};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function sortItems(a){
+  const k=sortKey, v=x=>{
+    if(k==='dd')return x.dd??0;                  // 跌得越深越靠前
+    if(k==='val')return x.fpe??1e9;             // 远期市盈率越低越靠前
+    return -(x[k]??-1e9);
+  };
+  return [...a].sort((x,y)=>v(x)-v(y));
+}
+
+function metric(label,val,sub){
+  return `<div class="rounded-xl bg-white/[.03] border border-white/5 px-3 py-2.5">
+    <div class="text-[11px] text-zinc-500">${label}</div>
+    <div class="mt-0.5 text-[15px] font-semibold text-zinc-100 num">${val}</div>${sub?`<div class="text-[11px] text-zinc-500 num">${sub}</div>`:''}</div>`;
+}
+
+function card(x,i){
+  const earnChip = x.ein ? `<span class="rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 px-2 py-0.5 text-[11px]">⚡ ${md(x.earn)} 财报</span>`
+                         : (x.earn?`<span class="text-[11px] text-zinc-600">财报 ${md(x.earn)}</span>`:'');
+  const rankCls = i<3?'bg-brand text-black':'bg-white/10 text-zinc-300';
+  const disc = x.px&&x.cost?(1-x.cost/x.px)*100:null;
+  const q = x.quote==='last'?'（最近成交价）':'';
+  return `<article class="card rounded-3xl p-5 flex flex-col">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-8 h-8 shrink-0 rounded-lg ${rankCls} grid place-items-center text-sm font-extrabold num">${i+1}</div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2"><span class="text-xl font-extrabold text-white tracking-tight">${esc(x.t)}</span>
+            <span class="text-[13px] text-zinc-400 num">${usd(x.px)}</span>
+            <span class="text-[12px] num ${x.w1>=0?'text-emerald-400':'text-rose-400'}">${pct(x.w1,1,true)}<span class="text-zinc-600"> 5日</span></span></div>
+          <div class="text-[12px] text-zinc-500 truncate">${esc(x.n)}</div>
+        </div>
+      </div>
+      <div class="text-right shrink-0">
+        <div class="text-[10px] uppercase tracking-wider text-zinc-500">综合分</div>
+        <div class="text-lg font-bold text-zinc-200 num">${x.score}</div>
+      </div>
+    </div>
+
+    <div class="mt-5 flex items-end justify-between gap-3">
+      <div>
+        <div class="text-[12px] text-zinc-500">权利金年化收益</div>
+        <div class="ann text-[52px] leading-none font-extrabold tracking-tight num">${x.ann==null?'—':f(x.ann,1)}<span class="text-3xl">%</span></div>
+      </div>
+      <div class="text-right pb-1">${earnChip}</div>
+    </div>
+
+    <div class="mt-4 rounded-2xl bg-brand/[.07] border border-brand/20 px-4 py-3 text-[14px] text-zinc-200">
+      卖出 <b class="text-white">${md(x.exp)}</b> 到期 <b class="text-white num">$${f(x.k,x.k%1?2:0)}</b> Put
+      <span class="text-zinc-400">·</span> 收 <b class="text-brand-soft num">${usd(x.prem)}</b><span class="text-zinc-400">/股</span>
+      <span class="text-zinc-500 num">（$${f(x.prem*100,0)}/张）</span>${q}
+      <div class="text-[11px] text-zinc-500 mt-0.5 num">剩 ${x.dte} 天 · Delta ${x.dl??'暂无'} · Bid/Ask ${x.bid??'—'}/${x.ask??'—'} · 持仓量 ${x.oi??'暂无'}</div>
+    </div>
+
+    <div class="mt-3 grid grid-cols-3 gap-2">
+      ${metric('价外幅度',pct(x.otm),'安全垫')}
+      ${metric('接货价',usd(x.cost),disc==null?'':'较现价 -'+f(disc,1)+'%')}
+      ${metric('所需现金',x.cash==null?na:'$'+f(x.cash,0),'每张')}
+      ${metric('IV 溢价',x.ivhv==null?na:f(x.ivhv,2)+'×',`IV ${x.iv??'—'}% / HV ${x.hv??'—'}%`)}
+      ${metric('距高点',pct(x.dd),'近一月 '+(x.m1==null?'暂无':(x.m1>0?'+':'')+x.m1+'%'))}
+      ${metric('远期PE',x.fpe==null?na:f(x.fpe,1)+'×','FCF 收益率 '+(x.fcfy==null?'暂无':x.fcfy+'%'))}
+    </div>
+
+    <div class="mt-4 space-y-2 text-[13px] leading-5">
+      <div class="flex gap-2"><span class="shrink-0 mt-0.5 text-[11px] font-bold rounded-md px-1.5 py-0.5 bg-emerald-400/10 text-emerald-300">为什么</span><span class="text-zinc-300">${esc(x.why)}</span></div>
+      <div class="flex gap-2"><span class="shrink-0 mt-0.5 text-[11px] font-bold rounded-md px-1.5 py-0.5 bg-rose-400/10 text-rose-300">风险</span><span class="text-zinc-400">${esc(x.risk)}</span></div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  let a=DATA.items; if(noEarn)a=a.filter(x=>!x.ein);
+  a=sortItems(a);
+  $('#list').innerHTML=a.map(card).join('');
+  $('#empty').classList.toggle('hidden',a.length>0);
+  document.querySelectorAll('#sorts button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===sortKey));
+}
+
+function init(){
+  $('#sorts').innerHTML=SORTS.map(([k,l])=>`<button data-k="${k}" class="pill shrink-0 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-[13px] text-zinc-300 transition hover:border-white/25">${l}</button>`).join('');
+  $('#sorts').onclick=e=>{const b=e.target.closest('button');if(b){sortKey=b.dataset.k;render()}};
+  $('#noearn').onchange=e=>{noEarn=e.target.checked;render()};
+  fetch('data.json?t='+Date.now()).then(r=>r.json()).then(d=>{
+    DATA=d;
+    $('#s-top5').textContent=d.avg_ann_top5==null?'暂无':d.avg_ann_top5+'%';
+    $('#s-avg').textContent=d.avg_ann==null?'暂无':d.avg_ann+'%';
+    $('#s-pool').innerHTML=`${d.items.length}<span class="text-zinc-500 text-xl"> / ${d.pool_size}</span>`;
+    $('#s-time').textContent=d.updated_sgt.slice(5);
+    $('#s-asof').textContent=`行情：美东 ${md(d.price_asof)}`;
+    $('#session').textContent=`${d.session} · 交易日每小时自动更新`;
+    if(d.session!=='盘中')$('#live-dot').classList.remove('animate-pulse');
+    $('#ctx').textContent=d.context;
+    render();
+  }).catch(()=>{$('#empty').classList.remove('hidden');$('#empty').textContent='数据加载失败，请稍后刷新';});
+}
+init();
+</script>
+</body>
+</html>

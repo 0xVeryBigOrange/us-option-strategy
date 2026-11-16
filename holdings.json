@@ -1,0 +1,4 @@
+{
+ "MSTR": {"coin": "BTC", "amount": 850364, "asof": "2026-11-08", "src": "https://www.stocktitan.net/sec-filings/MSTR/8-k-strategy-inc-reports-material-event-d76acf15ecb9.html", "note": "Strategy 8-K（2026-11-09）"},
+ "BMNR": {"coin": "ETH", "amount": 6070092, "asof": "2026-11-08", "src": "https://www.sec.gov/Archives/edgar/data/1829311/000149315226050647/ex99-1.htm", "note": "Bitmine 新闻稿 / SEC 8-K Ex99.1（2026-11-09）"}
+}

@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>大橙子推荐的美股 Option 策略 · Sell Put 抄底排行榜</title>
-<meta name="description" content="学巴菲特、段永平用 Sell Put 抄底优质美股：每只标的的权利金年化收益、行权价、接货价、入选理由与风险，美股交易日每小时自动更新。">
+<meta name="description" content="学巴菲特、段永平用 Sell Put 抄底优质美股：每只标的的权利金年化收益、行权价、接货价、入选理由与风险；新增 Crypto 板块（IBIT、ETHA、MSTR、BMNR、COIN、HOOD、CRCL 等）。美股交易日每小时自动更新。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="大橙子推荐的美股 Option 策略 🍊 Sell Put 抄底排行榜">
-<meta property="og:description" content="优质美股 Sell Put 年化收益排行：行权价、权利金、接货价、入选理由与风险，交易日每小时自动更新。">
+<meta property="og:description" content="优质美股 + Crypto 板块（IBIT/ETHA/MSTR/BMNR/COIN/HOOD/CRCL）Sell Put 年化收益排行：行权价、权利金、接货价、入选理由与风险，交易日每小时自动更新。">
 <meta property="og:image" content="https://0xverybigorange.github.io/us-option-strategy/og.png">
 <meta property="og:url" content="https://0xverybigorange.github.io/us-option-strategy/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@0xVeryBigOrange">
 <meta name="twitter:title" content="大橙子推荐的美股 Option 策略 🍊 Sell Put 抄底排行榜">
-<meta name="twitter:description" content="优质美股 Sell Put 年化收益排行，交易日每小时自动更新。">
+<meta name="twitter:description" content="优质美股 + Crypto 板块 Sell Put 年化收益排行，交易日每小时自动更新。">
 <meta name="twitter:image" content="https://0xverybigorange.github.io/us-option-strategy/og.png">
 <meta name="theme-color" content="#09090b">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍊</text></svg>">
@@ -30,7 +30,10 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
   .ann{background:linear-gradient(180deg,#ffb26b 0%,#ff7a1a 60%,#f05a00 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
   .card{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.07);transition:border-color .2s,transform .2s}
   .card:hover{border-color:rgba(255,122,26,.35);transform:translateY(-2px)}
+  .tab{color:#a1a1aa}.tab[aria-selected="true"]{background:#fff;color:#09090b;box-shadow:0 4px 18px rgba(255,255,255,.08)}
   .pill[aria-pressed="true"]{background:#ff7a1a;color:#111;border-color:#ff7a1a}
+  #list>article{min-width:0}
+  @media(max-width:767px){#list{grid-template-columns:minmax(0,1fr)}}
   .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
   .tip{border-bottom:1px dotted rgba(255,255,255,.3);cursor:help}
 </style>
@@ -63,7 +66,7 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
     <h1 class="mt-4 text-[34px] leading-[1.1] sm:text-6xl font-extrabold tracking-tight text-white">
       大橙子推荐的<br class="sm:hidden">美股 <span class="ann">Option</span> 策略
     </h1>
-    <p class="mt-3 text-[15px] sm:text-lg text-zinc-400 max-w-2xl">像巴菲特、段永平一样用 <b class="text-zinc-200">Sell Put</b> 抄底优质公司：要么白赚权利金，要么以打折价买到好股票。</p>
+    <p class="mt-3 text-[15px] sm:text-lg text-zinc-400 max-w-2xl">像巴菲特、段永平一样用 <b class="text-zinc-200">Sell Put</b> 抄底优质公司：要么白赚权利金，要么以打折价买到好股票。<span class="text-brand-soft">新增 Crypto 板块 ₿</span></p>
 
     <!-- Stats -->
     <div class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -86,12 +89,16 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
       </div>
     </div>
     <div class="mt-3 card rounded-2xl px-4 py-3 text-[13px] sm:text-sm text-zinc-400 flex gap-2">
-      <span class="text-brand shrink-0">市场</span><span id="ctx">—</span>
+      <span id="ctx-label" class="text-brand shrink-0">市场</span><span id="ctx">—</span>
     </div>
   </section>
 
   <!-- Controls -->
   <section class="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-[#09090b]/85 backdrop-blur border-b border-white/5">
+    <div id="tabs" class="mb-3 grid grid-cols-2 sm:inline-grid sm:w-auto gap-1 p-1 rounded-2xl bg-white/[.04] border border-white/10">
+      <button data-tab="value" class="tab rounded-xl px-5 py-2 text-[14px] font-semibold transition">📈 价值股 <span class="cnt text-[12px] opacity-60"></span></button>
+      <button data-tab="crypto" class="tab rounded-xl px-5 py-2 text-[14px] font-semibold transition">₿ Crypto <span class="cnt text-[12px] opacity-60"></span><span class="ml-1 align-middle text-[10px] font-bold rounded px-1 py-px bg-brand text-black">NEW</span></button>
+    </div>
     <div class="flex items-center gap-3 justify-between">
       <div id="sorts" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
       <label class="shrink-0 flex items-center gap-2 text-[13px] text-zinc-300 cursor-pointer select-none">
@@ -102,6 +109,7 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
     </div>
   </section>
 
+  <div id="coins" class="hidden mt-5 grid grid-cols-2 gap-3"></div>
   <div id="list" class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
   <div id="empty" class="hidden text-center text-zinc-500 py-16">暂无数据</div>
 
@@ -123,6 +131,7 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
         <li>候选池：约 50 只美股大盘优质公司；剔除自由现金流为负、股东权益为负、亏损的公司。</li>
         <li>期权：选 30–45 天到期（优先月度合约），用 Black-Scholes 找 Delta ≈ −0.25 的 Put；权利金取买卖价中间价。</li>
         <li>综合分 100 = 质量 30（ROE、利润率、净现金、增长）+ 估值 30（远期市盈率、自由现金流收益率）+ 波动率 20（IV 溢价、IV 水平）+ 跌幅 20（距一年高点回撤）。</li>
+        <li><b class="text-zinc-200">Crypto 板块</b>：不套用上面的剔除规则（亏损公司也保留）。综合分 100 = 年化 30 + IV 溢价 20 + 跌幅 25 + 期权流动性 25（买卖价差、持仓量）。ETF 没有估值指标，显示“不适用”。mNAV = 市值 ÷（公司公告的持币数量 × 币价），持币数量来自最近一次公告。</li>
         <li>数据来自 Yahoo Finance，期权报价可能有 15 分钟延迟；美股交易日盘中每小时、收盘后各自动刷新一次。拿不到的数据显示“暂无”。</li>
       </ul>
     </div>
@@ -135,8 +144,10 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
 </div>
 
 <script>
-const SORTS=[['score','综合推荐'],['ann','年化收益'],['dd','跌幅'],['val','估值'],['ivhv','IV 溢价']];
-let DATA=null, sortKey='score', noEarn=false;
+const SORTS={value:[['score','综合推荐'],['ann','年化收益'],['dd','跌幅'],['val','估值'],['ivhv','IV 溢价']],
+              crypto:[['score','综合推荐'],['ann','年化收益'],['dd','跌幅'],['ivhv','IV 溢价'],['liq','流动性']]};
+const CN={BTC:'比特币',ETH:'以太坊'};
+let DATA=null, sortKey='score', noEarn=false, tab=location.hash==='#crypto'?'crypto':'value';
 const $=s=>document.querySelector(s);
 const na='<span class="text-zinc-600">暂无</span>';
 const f=(v,d=2)=>v==null?null:Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -149,6 +160,7 @@ function sortItems(a){
   const k=sortKey, v=x=>{
     if(k==='dd')return x.dd??0;                  // 跌得越深越靠前
     if(k==='val')return x.fpe??1e9;             // 远期市盈率越低越靠前
+    if(k==='liq')return x.spr??1e9;             // 买卖价差越小越靠前
     return -(x[k]??-1e9);
   };
   return [...a].sort((x,y)=>v(x)-v(y));
@@ -166,6 +178,11 @@ function card(x,i){
   const rankCls = i<3?'bg-brand text-black':'bg-white/10 text-zinc-300';
   const disc = x.px&&x.cost?(1-x.cost/x.px)*100:null;
   const q = x.quote==='last'?'（最近成交价）':'';
+  let m6;
+  if(x.kind==='etf') m6=metric('对应 '+x.coin, usd(x.coin_px,0), '7日 '+pct(x.coin_d7,1,true)+' · PE 不适用');
+  else if(x.kind==='treasury') m6=metric('mNAV', x.mnav==null?na:f(x.mnav,2)+'×', x.hold_amt?`持 ${f(x.hold_amt,0)} ${x.coin}`:'持币数据暂无');
+  else m6=metric('远期PE',x.fpe==null?na:(x.fpe<0?'亏损':f(x.fpe,1)+'×'),'FCF 收益率 '+(x.fcfy==null?'暂无':x.fcfy+'%'));
+  const label = x.label?`<span class="ml-1 rounded-md bg-white/5 border border-white/10 px-1.5 py-px text-[10px] text-zinc-400">${esc(x.label)}</span>`:'';
   return `<article class="card rounded-3xl p-5 flex flex-col">
     <div class="flex items-start justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
@@ -174,7 +191,7 @@ function card(x,i){
           <div class="flex items-center gap-2"><span class="text-xl font-extrabold text-white tracking-tight">${esc(x.t)}</span>
             <span class="text-[13px] text-zinc-400 num">${usd(x.px)}</span>
             <span class="text-[12px] num ${x.w1>=0?'text-emerald-400':'text-rose-400'}">${pct(x.w1,1,true)}<span class="text-zinc-600"> 5日</span></span></div>
-          <div class="text-[12px] text-zinc-500 truncate">${esc(x.n)}</div>
+          <div class="text-[12px] text-zinc-500 truncate">${esc(x.n)}${label}</div>
         </div>
       </div>
       <div class="text-right shrink-0">
@@ -195,7 +212,7 @@ function card(x,i){
       卖出 <b class="text-white">${md(x.exp)}</b> 到期 <b class="text-white num">$${f(x.k,x.k%1?2:0)}</b> Put
       <span class="text-zinc-400">·</span> 收 <b class="text-brand-soft num">${usd(x.prem)}</b><span class="text-zinc-400">/股</span>
       <span class="text-zinc-500 num">（$${f(x.prem*100,0)}/张）</span>${q}
-      <div class="text-[11px] text-zinc-500 mt-0.5 num">剩 ${x.dte} 天 · Delta ${x.dl??'暂无'} · Bid/Ask ${x.bid??'—'}/${x.ask??'—'} · 持仓量 ${x.oi??'暂无'}</div>
+      <div class="text-[11px] text-zinc-500 mt-0.5 num">剩 ${x.dte} 天 · Delta ${x.dl??'暂无'} · Bid/Ask ${x.bid??'—'}/${x.ask??'—'} · 持仓量 ${x.oi??'暂无'}${x.spr!=null?' · 价差 '+x.spr+'%':''}</div>
     </div>
 
     <div class="mt-3 grid grid-cols-3 gap-2">
@@ -204,7 +221,7 @@ function card(x,i){
       ${metric('所需现金',x.cash==null?na:'$'+f(x.cash,0),'每张')}
       ${metric('IV 溢价',x.ivhv==null?na:f(x.ivhv,2)+'×',`IV ${x.iv??'—'}% / HV ${x.hv??'—'}%`)}
       ${metric('距高点',pct(x.dd),'近一月 '+(x.m1==null?'暂无':(x.m1>0?'+':'')+x.m1+'%'))}
-      ${metric('远期PE',x.fpe==null?na:f(x.fpe,1)+'×','FCF 收益率 '+(x.fcfy==null?'暂无':x.fcfy+'%'))}
+      ${m6}
     </div>
 
     <div class="mt-4 space-y-2 text-[13px] leading-5">
@@ -214,8 +231,29 @@ function card(x,i){
   </article>`;
 }
 
+function coinCard(c,k){
+  if(!c)return '';
+  return `<div class="card rounded-2xl p-4"><div class="flex items-center justify-between"><span class="text-[12px] text-zinc-500">${CN[k]} ${k}</span>
+    <span class="text-[12px] num ${c.d7>=0?'text-emerald-400':'text-rose-400'}">7日 ${pct(c.d7,1,true)}</span></div>
+    <div class="mt-1 text-2xl sm:text-3xl font-extrabold text-white num">$${f(c.px,0)}</div>
+    <div class="text-[11px] text-zinc-500 num">30日 ${pct(c.d30,1,true)} · 距一年高点 ${pct(c.dd)}</div></div>`;
+}
+function header(){
+  const d=tab==='crypto'?DATA.crypto:DATA;
+  $('#s-top5').textContent=d.avg_ann_top5==null?'暂无':d.avg_ann_top5+'%';
+  $('#s-avg').textContent=d.avg_ann==null?'暂无':d.avg_ann+'%';
+  $('#s-pool').innerHTML=tab==='crypto'?`${d.items.length}<span class="text-zinc-500 text-xl"> 只</span>`:`${d.items.length}<span class="text-zinc-500 text-xl"> / ${d.pool_size}</span>`;
+  $('#s-pool').previousElementSibling.textContent=tab==='crypto'?'Crypto 标的':'入选 / 候选池';
+  $('#s-top5').previousElementSibling.textContent=tab==='crypto'?'年化最高 5 只平均':'前 5 名平均年化';
+  $('#ctx-label').textContent=tab==='crypto'?'币价':'市场';
+  $('#ctx').textContent=d.context||'暂无';
+  $('#coins').classList.toggle('hidden',tab!=='crypto');
+  if(tab==='crypto')$('#coins').innerHTML=coinCard(d.coins&&d.coins.BTC,'BTC')+coinCard(d.coins&&d.coins.ETH,'ETH');
+  document.querySelectorAll('#tabs .tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  $('#sorts').innerHTML=SORTS[tab].map(([k,l])=>`<button data-k="${k}" class="pill shrink-0 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-[13px] text-zinc-300 transition hover:border-white/25">${l}</button>`).join('');
+}
 function render(){
-  let a=DATA.items; if(noEarn)a=a.filter(x=>!x.ein);
+  let a=(tab==='crypto'?DATA.crypto.items:DATA.items); if(noEarn)a=a.filter(x=>!x.ein);
   a=sortItems(a);
   $('#list').innerHTML=a.map(card).join('');
   $('#empty').classList.toggle('hidden',a.length>0);
@@ -223,20 +261,19 @@ function render(){
 }
 
 function init(){
-  $('#sorts').innerHTML=SORTS.map(([k,l])=>`<button data-k="${k}" class="pill shrink-0 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-[13px] text-zinc-300 transition hover:border-white/25">${l}</button>`).join('');
+  $('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(!b||!DATA)return;tab=b.dataset.tab;sortKey='score';history.replaceState(null,'',tab==='crypto'?'#crypto':location.pathname);header();render()};
   $('#sorts').onclick=e=>{const b=e.target.closest('button');if(b){sortKey=b.dataset.k;render()}};
   $('#noearn').onchange=e=>{noEarn=e.target.checked;render()};
   fetch('data.json?t='+Date.now()).then(r=>r.json()).then(d=>{
     DATA=d;
-    $('#s-top5').textContent=d.avg_ann_top5==null?'暂无':d.avg_ann_top5+'%';
-    $('#s-avg').textContent=d.avg_ann==null?'暂无':d.avg_ann+'%';
-    $('#s-pool').innerHTML=`${d.items.length}<span class="text-zinc-500 text-xl"> / ${d.pool_size}</span>`;
+    if(!d.crypto){d.crypto={items:[]};}
+    document.querySelector('[data-tab=value] .cnt').textContent=d.items.length;
+    document.querySelector('[data-tab=crypto] .cnt').textContent=d.crypto.items.length;
     $('#s-time').textContent=d.updated_sgt.slice(5);
     $('#s-asof').textContent=`行情：美东 ${md(d.price_asof)}`;
     $('#session').textContent=`${d.session} · 交易日每小时自动更新`;
     if(d.session!=='盘中')$('#live-dot').classList.remove('animate-pulse');
-    $('#ctx').textContent=d.context;
-    render();
+    header(); render();
   }).catch(()=>{$('#empty').classList.remove('hidden');$('#empty').textContent='数据加载失败，请稍后刷新';});
 }
 init();

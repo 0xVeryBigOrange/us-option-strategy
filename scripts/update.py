@@ -19,6 +19,19 @@ ET, SGT = ZoneInfo("America/New_York"), ZoneInfo("Asia/Singapore")
 POOL = ("NVDA GOOGL META MSFT AMZN AAPL NOW CRM ADBE CSCO ASML MU CAT NFLX MELI FTNT AMAT KLAC LRCX "
         "AVGO AMD ORCL DELL MRVL CMI INTU QCOM TXN PANW TSM EXPE GEV ETN V MA UNH ACN IBM PYPL NKE "
         "LULU CMG SBUX REGN BKNG ADP COST").split()
+# Crypto 板块：不套用价值股剔除规则。kind: etf / treasury / exchange / stablecoin / broker / miner
+CRYPTO = {
+    "IBIT": dict(kind="etf", coin="BTC", label="比特币 ETF"),
+    "ETHA": dict(kind="etf", coin="ETH", label="以太坊 ETF"),
+    "MSTR": dict(kind="treasury", coin="BTC", label="BTC 财库"),
+    "BMNR": dict(kind="treasury", coin="ETH", label="ETH 财库"),
+    "COIN": dict(kind="exchange", coin="BTC", label="加密交易所"),
+    "HOOD": dict(kind="broker", coin="BTC", label="券商+加密"),
+    "CRCL": dict(kind="stablecoin", coin=None, label="USDC 稳定币"),
+    "MARA": dict(kind="miner", coin="BTC", label="BTC 矿企"),
+    "IREN": dict(kind="miner", coin="BTC", label="矿企/AI 算力"),
+}
+HOLDINGS = os.path.join(ROOT, "holdings.json")
 TOP_N = 20
 R = 0.04            # 无风险利率（Black-Scholes 用）
 TARGET_DELTA = -0.25
@@ -54,7 +67,7 @@ def load_fund(force=False):
     if os.path.exists(FUND):
         cache = json.load(open(FUND))
     fresh_cut = time.time() - 20 * 3600
-    for t in POOL:
+    for t in POOL + list(CRYPTO):
         c = cache.get(t)
         if c and c.get("_ts", 0) > fresh_cut and not force:
             continue
@@ -143,6 +156,7 @@ def pick_put(t, S, today):
                 otm=num((1 - K / S) * 100, 1), ann=num(prem / (K - prem) * 365 / dte * 100, 1),
                 cost=num(K - prem), cash=int(round(K * 100)),
                 oi=None if pd.isna(row.openInterest) else int(row.openInterest),
+                spr=num((row.ask - row.bid) / ((row.ask + row.bid) / 2) * 100, 1) if quote == "mid" else None,
                 vol=None if pd.isna(row.volume) else int(row.volume))
 
 
@@ -171,6 +185,8 @@ def risks(r):
     if r["ein"] and r["earn"]:
         d = dt.date.fromisoformat(r["earn"])
         out.append(f"到期前 {d.month}/{d.day} 发财报，可能跳空")
+    if r["fpe"] and r["tpe"] and r["fpe"] < r["tpe"] * 0.5:
+        out.append(f"远期PE {r['fpe']:.1f} 倍是基于分析师预期明年盈利大增（当前PE {r['tpe']:.0f} 倍），周期股低PE可能出现在盈利高点")
     if r["hv"] and r["hv"] >= 55:
         out.append(f"过去一年实际波动 {r['hv']:.0f}%，股价大起大落")
     if r["m1"] is not None and r["m1"] <= -15:
@@ -188,19 +204,99 @@ def risks(r):
     return "；".join(out[:2])
 
 
-def main():
-    now = dt.datetime.now(dt.timezone.utc)
-    today = now.astimezone(ET).date()
-    fund = load_fund(force="--refresh-fund" in sys.argv)
+# ---------------- Crypto 板块的理由 / 风险 ----------------
+COIN_NAME = {"BTC": "比特币", "ETH": "以太坊"}
 
-    idx = ["SPY", "QQQ", "SMH", "^VIX"]
-    px = retry(lambda: yf.download(POOL + idx, period="13mo", auto_adjust=True, progress=False, threads=True))["Close"]
-    asof = px.dropna(how="all").index[-1].date()
 
-    def chg(s, n):
-        s = s.dropna()
-        return num((s.iloc[-1] / s.iloc[-1 - n] - 1) * 100, 1) if len(s) > n else None
+def reasons_crypto(r, pct):
+    c = []
+    if r.get("mnav") is not None and r["mnav"] < 1:
+        c.append((1.1, f"股价低于所持{COIN_NAME[r['coin']]}价值（mNAV {r['mnav']:.2f}×），相当于打折买币"))
+    if r["ivhv"] is not None and r["ivhv"] >= 1:
+        c.append((pct["ivhv"], f"IV 是过去一年实际波动的 {r['ivhv']:.2f} 倍，期权偏贵，卖方占优"))
+    c.append((pct["ann"], f"隐含波动率 {r['iv']:.0f}%，Delta 0.25 的 Put 年化就有 {r['ann']:.0f}%"))
+    if r["dd"] is not None:
+        c.append((pct["dd"], f"较一年高点回撤 {abs(r['dd']):.0f}%，已大幅出清"))
+    if r.get("coin_dd") is not None and r["kind"] in ("etf", "treasury"):
+        c.append((pct["dd"] * 0.95, f"{COIN_NAME[r['coin']]}已从高点回撤 {abs(r['coin_dd']):.0f}%"))
+    if r.get("spr") is not None and r["spr"] <= 5 and (r["oi"] or 0) >= 1000:
+        c.append((pct["liq"], f"期权流动性好：买卖价差 {r['spr']:.1f}%、持仓量 {r['oi']:,}"))
+    c.sort(key=lambda x: -x[0])
+    return "；".join(x[1] for x in c[:2])
 
+
+KIND_RISK = {
+    "etf": "{coin} 24 小时交易，周末大跌周一开盘可能直接跳空穿过行权价",
+    "treasury": "{coin}的杠杆代理：靠增发股票/发债买币，持续稀释，币价下跌时跌幅通常更大",
+    "exchange": "收入跟交易量和币价高度相关，熊市时利润下滑快",
+    "broker": "加密和期权交易收入随市场情绪波动，估值不便宜",
+    "stablecoin": "利润主要来自 USDC 储备利息，降息会直接压缩收入；上市时间短、波动大",
+    "miner": "挖矿收入随币价和全网算力波动，资本开支大、常需增发",
+}
+
+
+def risks_crypto(r):
+    out = [KIND_RISK[r["kind"]].format(coin=COIN_NAME.get(r["coin"], ""))]
+    if r["ein"] and r["earn"]:
+        d = dt.date.fromisoformat(r["earn"])
+        out.insert(0, f"到期前 {d.month}/{d.day} 发财报，可能跳空")
+    if r.get("spr") is not None and (r["spr"] > 6 or (r["oi"] or 0) < 300):
+        out.append(f"该行权价持仓量 {r['oi'] or 0}、价差 {r['spr']:.1f}%，成交可能有滑点，用限价单")
+    if r["hv"] and r["hv"] >= 90:
+        out.append(f"过去一年实际波动 {r['hv']:.0f}%，可能一个月跌三成")
+    return "；".join(out[:2])
+
+
+def chg(s, n):
+    s = s.dropna()
+    return num((s.iloc[-1] / s.iloc[-1 - n] - 1) * 100, 1) if len(s) > n else None
+
+
+def base_row(t, f, s, today, n_hv=252):
+    S = float(s.iloc[-1])
+    last = s.iloc[-n_hv:]
+    lr = np.log(last).diff().dropna()
+    hv = float(lr.std() * math.sqrt(252) * 100)
+    try:
+        o = pick_put(t, S, today)
+    except Exception as e:
+        print("opt ERR", t, e); o = None
+    if not o:
+        print("skip(no option)", t); return None
+    f = f or {}
+    mcap = f.get("mcap")
+    nc = ((f.get("cash") or 0) - (f.get("debt") or 0)) if f.get("cash") is not None else None
+    earn = None
+    if f.get("earn"):
+        ed = dt.datetime.fromtimestamp(int(f["earn"]), dt.timezone.utc).astimezone(ET).date()
+        earn = ed.isoformat() if ed >= today else None
+    r = dict(t=t, n=f.get("name"), sec=f.get("sector"), px=num(S), w1=chg(s, 5), m1=chg(s, 21),
+             dd=num((S / float(last.max()) - 1) * 100, 1), tpe=num(f.get("tpe"), 1), fpe=num(f.get("fpe"), 1),
+             fcfy=num(f["fcf"] / mcap * 100, 1) if f.get("fcf") and mcap else None,
+             nc=num(nc / 1e8, 0) if nc is not None else None,  # 单位：亿美元
+             ncr=(nc / mcap) if nc is not None and mcap else None,
+             roe=num(f["roe"] * 100, 0) if f.get("roe") is not None else None,
+             om=num(f["om"] * 100, 0) if f.get("om") is not None else None,
+             rg=num(f["rg"] * 100, 0) if f.get("rg") is not None else None,
+             hv=num(hv, 1), tgt=num(f.get("tgt")), rec=f.get("rec"), earn=earn, mcap=mcap, **o)
+    r["ivhv"] = num(r["iv"] / r["hv"], 2) if r["iv"] and r["hv"] else None
+    r["ein"] = bool(earn and earn <= o["exp"])
+    r["upside"] = num((r["tgt"] / S - 1) * 100, 1) if r["tgt"] else None
+    return r
+
+
+def pctl(d, col, i, asc=True):
+    v = d[col].rank(pct=True, ascending=asc).iloc[i]
+    return 0.0 if pd.isna(v) else float(v)
+
+
+def clean(r):
+    r = {k: (None if isinstance(v, float) and math.isnan(v) else v) for k, v in r.items()}
+    r.pop("ncr", None); r.pop("mcap", None)
+    return r
+
+
+def build_value(px, fund, today, notes):
     rows = []
     for t in POOL:
         f = fund.get(t)
@@ -211,66 +307,119 @@ def main():
         if (f.get("fcf") is not None and f["fcf"] <= 0) or (f.get("book") is not None and f["book"] <= 0) \
                 or (f.get("ni") is not None and f["ni"] <= 0) or (f.get("eps") is not None and f["eps"] <= 0):
             print("filtered", t); continue
-        S = float(s.iloc[-1])
-        last = s.iloc[-252:]
-        lr = np.log(last).diff().dropna()
-        hv = float(lr.std() * math.sqrt(252) * 100)
-        try:
-            o = pick_put(t, S, today)
-        except Exception as e:
-            print("opt ERR", t, e); o = None
-        if not o:
-            print("skip(no option)", t); continue
-        mcap = f.get("mcap")
-        nc = ((f.get("cash") or 0) - (f.get("debt") or 0)) if f.get("cash") is not None else None
-        earn = None
-        if f.get("earn"):
-            ed = dt.datetime.fromtimestamp(int(f["earn"]), dt.timezone.utc).astimezone(ET).date()
-            earn = ed.isoformat() if ed >= today else None
-        r = dict(t=t, n=f.get("name"), sec=f.get("sector"), px=num(S), w1=chg(s, 5), m1=chg(s, 21),
-                 dd=num((S / float(last.max()) - 1) * 100, 1), tpe=num(f.get("tpe"), 1), fpe=num(f.get("fpe"), 1),
-                 fcfy=num(f["fcf"] / mcap * 100, 1) if f.get("fcf") and mcap else None,
-                 nc=num(nc / 1e8, 0) if nc is not None else None,  # 单位：亿美元
-                 ncr=(nc / mcap) if nc is not None and mcap else None,
-                 roe=num((f.get("roe") or 0) * 100, 0) if f.get("roe") is not None else None,
-                 om=num(f["om"] * 100, 0) if f.get("om") is not None else None,
-                 rg=num(f["rg"] * 100, 0) if f.get("rg") is not None else None,
-                 hv=num(hv, 1), tgt=num(f.get("tgt")), rec=f.get("rec"), earn=earn, mcap=mcap, **o)
-        r["ivhv"] = num(r["iv"] / r["hv"], 2) if r["iv"] and r["hv"] else None
-        r["ein"] = bool(earn and earn <= o["exp"])
-        r["upside"] = num((r["tgt"] / S - 1) * 100, 1) if r["tgt"] else None
-        rows.append(r)
-        print("ok", t, r["k"], r["prem"], r["ann"], flush=True)
+        r = base_row(t, f, s, today)
+        if r:
+            rows.append(r); print("ok", t, r["k"], r["prem"], r["ann"], flush=True)
         time.sleep(0.3)
-
-    old = json.load(open(DATA)) if os.path.exists(DATA) else None
-    old_n = len(old["items"]) if old else 0
-    need = max(10, int(min(old_n, TOP_N) * 0.6))
-    if len(rows) < need:
-        print(f"FAIL: only {len(rows)} rows (< {need}); keep old data.json"); sys.exit(2)
-
+    if not rows:
+        return [], 0
     d = pd.DataFrame(rows)
     pr = lambda x, asc=True: x.rank(pct=True, ascending=asc).fillna(0.5)
     qual = (pr(d.roe.clip(upper=100)) + pr(d.om) + pr(d.ncr) + pr(d.rg.clip(upper=100))) / 4
     val = (pr(d.fpe, False) + pr(d.fcfy)) / 2
     ivs = (pr(d.ivhv) + pr(d.iv)) / 2
-    ddp = pr(-d.dd)
-    d["sq"], d["sv"], d["si"], d["sd"] = (qual * 30).round(1), (val * 30).round(1), (ivs * 20).round(1), (ddp * 20).round(1)
+    d["sq"], d["sv"], d["si"], d["sd"] = (qual * 30).round(1), (val * 30).round(1), (ivs * 20).round(1), (pr(-d.dd) * 20).round(1)
     d["score"] = (d.sq + d.sv + d.si + d.sd).round(0).astype(int)
     d = d.sort_values("score", ascending=False).head(TOP_N).reset_index(drop=True)
-
-    notes = json.load(open(NOTES)) if os.path.exists(NOTES) else {}
     items = []
     for i, r in d.iterrows():
-        r = {k: (None if isinstance(v, float) and math.isnan(v) else v) for k, v in r.to_dict().items()}
-        pct = dict(ivhv=qual_pct(d, "ivhv", i), dd=qual_pct(d, "dd", i, asc=False), fpe=qual_pct(d, "fpe", i, asc=False),
-                   fcfy=qual_pct(d, "fcfy", i), q=float(r["sq"] / 30),
-                   nc=qual_pct(d, "ncr", i))
+        r = r.to_dict()
+        pct = dict(ivhv=pctl(d, "ivhv", i), dd=pctl(d, "dd", i, asc=False), fpe=pctl(d, "fpe", i, asc=False),
+                   fcfy=pctl(d, "fcfy", i), q=float(r["sq"] / 30), nc=pctl(d, "ncr", i))
+        r = clean(r)
         r["why"] = notes.get(r["t"], {}).get("why") or reasons(r, pct)
         r["risk"] = notes.get(r["t"], {}).get("risk") or risks(r)
         r["rank"] = i + 1
-        r.pop("ncr", None); r.pop("mcap", None)
         items.append(r)
+    return items, len(rows)
+
+
+def build_crypto(px, fund, today, notes, coins):
+    hold = json.load(open(HOLDINGS)) if os.path.exists(HOLDINGS) else {}
+    rows = []
+    for t, meta in CRYPTO.items():
+        s = px[t].dropna() if t in px else pd.Series(dtype=float)
+        if len(s) < 60:
+            print("skip(no data)", t); continue
+        r = base_row(t, fund.get(t), s, today)
+        if not r:
+            continue
+        r.update(kind=meta["kind"], coin=meta["coin"], label=meta["label"])
+        if meta["kind"] == "etf":
+            for k in ("tpe", "fpe", "fcfy", "nc", "roe", "om", "rg"):
+                r[k] = None
+        if meta["coin"]:
+            c = coins[meta["coin"]]
+            r.update(coin_px=c["px"], coin_d7=c["d7"], coin_d30=c["d30"], coin_dd=c["dd"])
+        # mNAV = 市值 ÷（持币数量 × 当日币价）；持币数量来自公司公告（holdings.json）
+        h = hold.get(t)
+        r["mnav"] = None
+        if h and r.get("mcap"):
+            cs = px[h["coin"] + "-USD"].dropna()
+            sd = s.index[-1]
+            cpx = float(cs[cs.index <= sd].iloc[-1]) if (cs.index <= sd).any() else float(cs.iloc[-1])
+            r["mnav"] = num(r["mcap"] / (h["amount"] * cpx), 2)
+            r["hold_amt"], r["hold_asof"], r["hold_src"] = h["amount"], h["asof"], h["src"]
+        rows.append(r); print("ok", t, r["k"], r["prem"], r["ann"], r.get("mnav"), flush=True)
+        time.sleep(0.3)
+    if not rows:
+        return []
+    d = pd.DataFrame(rows)
+    pr = lambda x, asc=True: x.rank(pct=True, ascending=asc).fillna(0.5)
+    d["liq"] = (pr(d.spr, False) + pr(np.log1p(d.oi.fillna(0)))) / 2
+    d["sa"], d["si"], d["sd"], d["sl"] = (pr(d.ann) * 30).round(1), (pr(d.ivhv) * 20).round(1), (pr(-d.dd) * 25).round(1), (d.liq * 25).round(1)
+    d["score"] = (d.sa + d.si + d.sd + d.sl).round(0).astype(int)
+    d = d.sort_values("score", ascending=False).reset_index(drop=True)
+    items = []
+    for i, r in d.iterrows():
+        r = r.to_dict()
+        pct = dict(ivhv=pctl(d, "ivhv", i), dd=pctl(d, "dd", i, asc=False), ann=pctl(d, "ann", i), liq=pctl(d, "liq", i))
+        r = clean(r)
+        r["why"] = notes.get(r["t"], {}).get("why") or reasons_crypto(r, pct)
+        r["risk"] = notes.get(r["t"], {}).get("risk") or risks_crypto(r)
+        r["rank"] = i + 1
+        items.append(r)
+    return items
+
+
+def main():
+    now = dt.datetime.now(dt.timezone.utc)
+    today = now.astimezone(ET).date()
+    fund = load_fund(force="--refresh-fund" in sys.argv)
+    notes = json.load(open(NOTES)) if os.path.exists(NOTES) else {}
+    old = json.load(open(DATA)) if os.path.exists(DATA) else None
+
+    idx = ["SPY", "QQQ", "SMH", "^VIX"]
+    cc = ["BTC-USD", "ETH-USD"]
+    px = retry(lambda: yf.download(POOL + list(CRYPTO) + idx + cc, period="13mo", auto_adjust=True,
+                                   progress=False, threads=True))["Close"]
+    asof = px["SPY"].dropna().index[-1].date()
+
+    coins = {}
+    for c in ("BTC", "ETH"):
+        s = px[c + "-USD"].dropna()
+        coins[c] = dict(px=num(s.iloc[-1]), d7=chg(s, 7), d30=chg(s, 30),
+                        dd=num((s.iloc[-1] / s.iloc[-365:].max() - 1) * 100, 1),
+                        asof=str(s.index[-1].date()))
+
+    items, passed = build_value(px, fund, today, notes)
+    old_n = len(old["items"]) if old else 0
+    need = max(10, int(min(old_n, TOP_N) * 0.6))
+    if len(items) < need:
+        print(f"FAIL: only {len(items)} rows (< {need}); keep old data.json"); sys.exit(2)
+
+    crypto = build_crypto(px, fund, today, notes, coins)
+    if len(crypto) < 4:
+        print(f"WARN: crypto only {len(crypto)} rows; keep old crypto section")
+        old_c = (old or {}).get("crypto")
+        if old_c:
+            crypto_out = old_c
+        else:
+            crypto_out = dict(items=crypto, coins=coins, avg_ann=None, avg_ann_top5=None)
+    else:
+        crypto_out = dict(items=crypto, coins=coins, pool_size=len(CRYPTO),
+                          avg_ann=num(np.mean([x["ann"] for x in crypto]), 1),
+                          avg_ann_top5=num(np.mean(sorted([x["ann"] for x in crypto], reverse=True)[:5]), 1))
 
     mk = {k: dict(px=num(px[k].dropna().iloc[-1]), w1=chg(px[k], 5), m1=chg(px[k], 21),
                   dd=num((px[k].dropna().iloc[-1] / px[k].dropna().iloc[-252:].max() - 1) * 100, 1)) for k in idx}
@@ -279,22 +428,33 @@ def main():
     ctx = (f"标普500 近5日 {mk['SPY']['w1']:+.1f}%（距一年高点 {mk['SPY']['dd']:.1f}%），"
            f"纳指100 近5日 {mk['QQQ']['w1']:+.1f}%，半导体 SMH 近一月 {mk['SMH']['m1']:+.1f}%（距高点 {mk['SMH']['dd']:.1f}%），"
            f"VIX {mk['^VIX']['px']:.1f}。")
+    b, e = coins["BTC"], coins["ETH"]
+    cctx = (f"比特币 ${b['px']:,.0f}，近7日 {b['d7']:+.1f}%、近30日 {b['d30']:+.1f}%（距一年高点 {b['dd']:.1f}%）；"
+            f"以太坊 ${e['px']:,.0f}，近7日 {e['d7']:+.1f}%、近30日 {e['d30']:+.1f}%（距高点 {e['dd']:.1f}%）。")
+    gaps = []
+    for c in ("BTC", "ETH"):
+        cs = px[c + "-USD"].dropna()
+        base = cs[cs.index.date <= asof]
+        if len(base) and cs.index[-1].date() > asof:
+            g = (cs.iloc[-1] / base.iloc[-1] - 1) * 100
+            coins[c]["since_close"] = num(g, 1)
+            if abs(g) >= 1:
+                gaps.append(f"{COIN_NAME[c]} {g:+.1f}%")
+    if gaps:
+        cctx += f"美股上次收盘（{asof.month}/{asof.day}）以来 " + "、".join(gaps) + "，期权报价是收盘时的，开盘后会变化。"
+    crypto_out["context"] = cctx
     out = dict(updated_utc=now.strftime("%Y-%m-%dT%H:%M:%SZ"),
                updated_sgt=now.astimezone(SGT).strftime("%Y-%m-%d %H:%M"),
                price_asof=str(asof), session=session, market=mk, context=ctx,
-               pool_size=len(POOL), passed=len(rows),
+               pool_size=len(POOL), passed=passed,
                avg_ann=num(np.mean([x["ann"] for x in items]), 1),
                avg_ann_top5=num(np.mean([x["ann"] for x in items[:5]]), 1),
-               method=dict(delta=TARGET_DELTA, dte="30-45", r=R), items=items)
+               method=dict(delta=TARGET_DELTA, dte="30-45", r=R), items=items, crypto=crypto_out)
     tmp = DATA + ".tmp"
     json.dump(out, open(tmp, "w"), ensure_ascii=False, indent=1, default=str)
     os.replace(tmp, DATA)
-    print(f"wrote {len(items)} items; top5:", [(x['t'], x['ann']) for x in items[:5]])
-
-
-def qual_pct(d, col, i, asc=True):
-    v = d[col].rank(pct=True, ascending=asc).iloc[i]
-    return 0.0 if pd.isna(v) else float(v)
+    print(f"wrote {len(items)} value + {len(crypto)} crypto; top5:", [(x['t'], x['ann']) for x in items[:5]],
+          "crypto:", [(x['t'], x['ann']) for x in crypto])
 
 
 if __name__ == "__main__":

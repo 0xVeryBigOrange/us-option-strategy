@@ -258,7 +258,8 @@ def reasons_crypto(r, pct):
         c.append((1.1, f"股价低于所持{COIN_NAME[r['coin']]}价值（mNAV {r['mnav']:.2f}×），相当于打折买币"))
     if r["ivhv"] is not None and r["ivhv"] >= 1:
         c.append((pct["ivhv"], f"IV 是过去一年实际波动的 {r['ivhv']:.2f} 倍，期权偏贵，卖方占优"))
-    c.append((pct["ann"], f"隐含波动率 {r['iv']:.0f}%，Delta 0.25 的 Put 年化就有 {r['ann']:.0f}%"))
+    if r.get("iv") is not None and r.get("ann") is not None:
+        c.append((pct["ann"], f"隐含波动率 {r['iv']:.0f}%，Delta 0.25 的 Put 年化就有 {r['ann']:.0f}%"))
     if r["dd"] is not None:
         c.append((pct["dd"], f"较一年高点回撤 {abs(r['dd']):.0f}%，已大幅出清"))
     if r.get("coin_dd") is not None and r["kind"] in ("etf", "treasury"):

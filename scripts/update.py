@@ -45,7 +45,30 @@ HOLIDAYS = {"2026-11-26", "2026-12-25", "2027-01-01", "2027-01-18", "2027-02-15"
             "2027-06-18", "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24"}
 HALF_DAYS = {"2026-11-27", "2026-12-24", "2027-11-26"}
 MAX_SPREAD = 0.50   # 买卖价差超过 50% 的报价视为无效（中间价不可信）
-MAX_ANN = 400.0     # 年化超过 400% 视为异常报价
+MAX_ANN = 400.0
+# 价差宽 → 降排名但不剔除：价差 ≤25% 不扣分；25%→50% 综合分乘数从 1.0 线性降到 0.6（50% 以上本来就被剔除）
+SPR_PEN_START, SPR_PEN_END, SPR_PEN_MIN = 25.0, 50.0, 0.6
+
+
+def spr_mult(spr):
+    if spr is None or pd.isna(spr) or spr <= SPR_PEN_START:
+        return 1.0
+    x = min((spr - SPR_PEN_START) / (SPR_PEN_END - SPR_PEN_START), 1.0)
+    return round(1.0 - (1.0 - SPR_PEN_MIN) * x, 3)
+
+
+def wide_txt(r):
+    return (f"买卖价差 {r['spr']:.1f}%，流动性差、挂中间价可能成交不了，实际权利金可能明显少于页面数字，"
+            f"综合分已按价差 ×{r['spr_mult']:.2f} 降排名")
+
+
+def apply_spr_penalty(d):
+    """综合分按价差打折后重新排序（不改变谁入榜，只改变名次）。"""
+    d["spr_mult"] = d.spr.map(spr_mult)
+    d["score_raw"] = d.score
+    d["score_f"] = d.score_raw * d.spr_mult
+    d["score"] = d.score_f.round(0).astype(int)
+    return d.sort_values(["score_f", "score_raw"], ascending=False).drop(columns="score_f").reset_index(drop=True)     # 年化超过 400% 视为异常报价
 CARRY_DAYS = 3      # 本次拿不到有效报价时，沿用上次数据的最长天数
 
 
@@ -250,7 +273,9 @@ def risks(r):
     out = []
     if r["ein"] and r["earn"]:
         out.append(earn_txt(r))
-    if r.get("spr") is not None and r["spr"] > 15:
+    if r.get("spr_mult", 1) < 1:
+        out.insert(0, wide_txt(r))
+    elif r.get("spr") is not None and r["spr"] > 15:
         out.append(f"买卖价差 {r['spr']:.0f}%，中间价不一定成交，实际权利金可能更少")
     if r["fpe"] and r["tpe"] and r["fpe"] < r["tpe"] * 0.5:
         out.append(f"远期PE {r['fpe']:.1f} 倍建立在分析师预期盈利大增上（当前PE {r['tpe']:.0f} 倍），预期落空估值会被重估")
@@ -307,7 +332,9 @@ def risks_crypto(r):
     out = [KIND_RISK[r["kind"]].format(coin=COIN_NAME.get(r["coin"], ""))]
     if r["ein"] and r["earn"]:
         out.insert(0, earn_txt(r))
-    if r.get("spr") is not None and (r["spr"] > 6 or (r["oi"] or 0) < 300):
+    if r.get("spr_mult", 1) < 1:
+        out.insert(0, wide_txt(r))
+    elif r.get("spr") is not None and (r["spr"] > 6 or (r["oi"] or 0) < 300):
         out.append(f"该行权价持仓量 {r['oi'] or 0}、价差 {r['spr']:.1f}%，成交可能有滑点，用限价单")
     if r["hv"] and r["hv"] >= 90:
         out.append(f"过去一年实际波动 {r['hv']:.0f}%，可能一个月跌三成")
@@ -370,7 +397,7 @@ def base_row(t, f, s, today, n_hv=252):
     return r
 
 
-SCORE_KEYS = {"why", "risk", "rank", "score", "sq", "sv", "si", "sd", "sa", "sl", "liq"}
+SCORE_KEYS = {"why", "risk", "rank", "score", "score_raw", "spr_mult", "sq", "sv", "si", "sd", "sa", "sl", "liq"}
 
 
 def carry(t, old_items, old_upd, today):
@@ -439,7 +466,9 @@ def build_value(px, fund, today, notes, old_items=None, old_upd=None):
     ivs = (pr(d.ivhv) + pr(d.iv)) / 2
     d["sq"], d["sv"], d["si"], d["sd"] = (qual * 30).round(1), (val * 30).round(1), (ivs * 20).round(1), (pr(-d.dd) * 20).round(1)
     d["score"] = (d.sq + d.sv + d.si + d.sd).round(0).astype(int)
+    # 先按原始综合分选出前 20（谁上榜不变），再按价差打折后的分数排名次
     d = d.sort_values("score", ascending=False).head(TOP_N).reset_index(drop=True)
+    d = apply_spr_penalty(d)
     items = []
     for i, r in d.iterrows():
         r = r.to_dict()
@@ -457,7 +486,9 @@ def build_value(px, fund, today, notes, old_items=None, old_upd=None):
                 extra.append(f"ADR 比{r['adr_local']}股价贵 {r['adr_prem']:.0f}%，溢价收窄会额外下跌")
             # 去掉模板里与周期股提示重复的“远期PE…重估”
             rest = [x for x in r["risk"].split("；") if "预期落空估值" not in x]
-            r["risk"] = "；".join((extra + rest)[:3])
+            wide = [x for x in rest if "降排名" in x]
+            rest = [x for x in rest if "降排名" not in x]
+            r["risk"] = "；".join((wide + extra + rest)[:3])
         r["rank"] = i + 1
         items.append(r)
     return items, len(rows)
@@ -503,7 +534,7 @@ def build_crypto(px, fund, today, notes, coins, old_items=None, old_upd=None):
     d["liq"] = (pr(d.spr, False) + pr(np.log1p(d.oi.fillna(0)))) / 2
     d["sa"], d["si"], d["sd"], d["sl"] = (pr(d.ann) * 30).round(1), (pr(d.ivhv) * 20).round(1), (pr(-d.dd) * 25).round(1), (d.liq * 25).round(1)
     d["score"] = (d.sa + d.si + d.sd + d.sl).round(0).astype(int)
-    d = d.sort_values("score", ascending=False).reset_index(drop=True)
+    d = apply_spr_penalty(d)
     items = []
     for i, r in d.iterrows():
         r = r.to_dict()

@@ -19,15 +19,24 @@ mNAV = 市值 ÷（持币数量 × 币价），持币数量来自公司公告，
 
 ## 方法
 - 候选池约 50 只美股大盘优质公司，剔除自由现金流为负、股东权益为负、亏损的公司
-- 30–45 天到期（优先月度合约），Black-Scholes 计算 Delta，选 Delta ≈ −0.25 的 Put，权利金取买卖中间价
+- 到期日优先 25–52 天内的月度合约（流动性最好），没有再用 30–45 天的周度合约；Black-Scholes 计算 Delta，选 Delta ≈ −0.25 的 Put，权利金取买卖中间价
+- 只用有效双边报价（买一>0、价差≤50%、年化≤400%）；某只股票本次拿不到有效报价时，沿用 3 天内的上一次数据并在卡片上标注“报价沿用”
 - 年化 = 权利金 ÷（行权价 − 权利金）× 365 ÷ 剩余天数
 - IV 溢价 = 平值隐含波动率 ÷ 过去一年实际波动率
 - 综合分 = 质量 30 + 估值 30 + 波动率 20 + 跌幅 20
 
 ## 自动更新
-GitHub Actions（`.github/workflows/update.yml`）在美股交易日盘中每小时、收盘后各运行一次 `scripts/update.py`，用 yfinance 拉取数据生成 `data.json` 并提交。拉取失败时保留旧数据。
+GitHub Actions（`.github/workflows/update.yml`）在美股交易日启动 `scripts/session.py`：盘中约每 30 分钟运行一次 `scripts/update.py`，收盘后再运行一次，用 yfinance 拉取数据生成 `data.json` 并提交（GitHub 定时任务常被延迟，所以用一次运行内循环刷新、多个 cron 接力）。拉取失败时保留旧数据。节假日表在 `scripts/update.py` 和 `assets/app.js` 里（`HOLIDAYS`），每年底更新一次。
+
+手动刷新：Actions → Update data → Run workflow。
 可在 `notes.json` 里为某只股票手写理由/风险覆盖自动生成的句子：`{"MU": {"why": "...", "risk": "..."}}`
 
 本地运行：`pip install -r requirements.txt && python scripts/update.py`
+
+## 前端
+- `index.html` + `assets/app.js`（无内联脚本，有 CSP）+ `assets/site.css`
+- 改了 HTML/JS 里的样式类后要重新生成 CSS（Tailwind v3 独立 CLI）：
+  `tailwindcss -c tailwind.config.js -i src/input.css -o assets/site.css --minify`
+- 改动 `assets/` 后把 `index.html` 里的 `?v=` 版本号改一下，避免浏览器缓存旧文件
 
 > ⚠️ 仅供学习参考，不构成投资建议。数据来自 Yahoo Finance，可能存在延迟或错误。

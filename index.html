@@ -3,51 +3,37 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="canonical" href="https://0xverybigorange.github.io/us-option-strategy/">
 <title>大橙子推荐的美股 Option 策略 · Sell Put 抄底排行榜</title>
-<meta name="description" content="学巴菲特、段永平用 Sell Put 抄底优质美股：每只标的的权利金年化收益、行权价、接货价、入选理由与风险；新增 Crypto 板块（IBIT、ETHA、MSTR、BMNR、COIN、HOOD、CRCL 等）。美股交易日每小时自动更新。">
+<meta name="description" content="学巴菲特、段永平用 Sell Put 抄底优质美股：每只标的的权利金年化收益、行权价、接货价、入选理由与风险；新增 Crypto 板块（IBIT、ETHA、MSTR、BMNR、COIN、HOOD、CRCL 等）。美股交易日盘中约每 30 分钟自动更新。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="大橙子推荐的美股 Option 策略 🍊 Sell Put 抄底排行榜">
-<meta property="og:description" content="优质美股 + Crypto 板块（IBIT/ETHA/MSTR/BMNR/COIN/HOOD/CRCL）Sell Put 年化收益排行：行权价、权利金、接货价、入选理由与风险，交易日每小时自动更新。">
+<meta property="og:description" content="优质美股 + Crypto 板块（IBIT/ETHA/MSTR/BMNR/COIN/HOOD/CRCL）Sell Put 年化收益排行：行权价、权利金、接货价、入选理由与风险，交易日盘中自动更新。">
 <meta property="og:image" content="https://0xverybigorange.github.io/us-option-strategy/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="大橙子推荐的美股 Option 策略：Sell Put 抄底排行榜">
+<meta property="og:site_name" content="大橙子推荐的美股 Option 策略">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:url" content="https://0xverybigorange.github.io/us-option-strategy/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@0xVeryBigOrange">
 <meta name="twitter:title" content="大橙子推荐的美股 Option 策略 🍊 Sell Put 抄底排行榜">
-<meta name="twitter:description" content="优质美股 + Crypto 板块 Sell Put 年化收益排行，交易日每小时自动更新。">
+<meta name="twitter:description" content="优质美股 + Crypto 板块 Sell Put 年化收益排行，交易日盘中自动更新。">
 <meta name="twitter:image" content="https://0xverybigorange.github.io/us-option-strategy/og.png">
+<meta name="twitter:image:alt" content="大橙子推荐的美股 Option 策略：Sell Put 抄底排行榜">
+<meta name="twitter:creator" content="@0xVeryBigOrange">
 <meta name="theme-color" content="#09090b">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍊</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC','sans-serif'],mono:['JetBrains Mono','ui-monospace','monospace']},colors:{brand:{DEFAULT:'#ff7a1a',soft:'#ff9a4d'}}}}}
-</script>
-<style>
-  body{font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
-  .glow{background:radial-gradient(60% 50% at 50% 0%,rgba(255,122,26,.18),transparent 70%)}
-  .num{font-variant-numeric:tabular-nums}
-  .ann{background:linear-gradient(180deg,#ffb26b 0%,#ff7a1a 60%,#f05a00 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.07);transition:border-color .2s,transform .2s}
-  .card:hover{border-color:rgba(255,122,26,.35);transform:translateY(-2px)}
-  .tab{color:#a1a1aa}.tab[aria-selected="true"]{background:#fff;color:#09090b;box-shadow:0 4px 18px rgba(255,255,255,.08)}
-  .pill[aria-pressed="true"]{background:#ff7a1a;color:#111;border-color:#ff7a1a}
-  #list>article{min-width:0}
-  @media(max-width:767px){#list{grid-template-columns:minmax(0,1fr)}}
-  .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
-  .tip{border-bottom:1px dotted rgba(255,255,255,.3);cursor:help}
-  .tip-t{cursor:help;border-bottom:1px dashed rgba(255,255,255,.22)}
-  .tip-t:hover{color:#ffb26b}
-  #pop{position:fixed;z-index:60;max-width:300px;display:none}
-  .skel{background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.08),rgba(255,255,255,.04));background-size:200% 100%;animation:sk 1.4s infinite}
-  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
-  details>summary{list-style:none}details>summary::-webkit-details-marker{display:none}
-  details[open] .chev{transform:rotate(180deg)}
-</style>
+<link rel="stylesheet" href="assets/site.css?v=20261122">
 </head>
 <body class="text-zinc-200 font-sans min-h-screen">
 <div class="glow absolute inset-x-0 top-0 h-[520px] pointer-events-none"></div>
-<div id="pop" class="rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur px-3.5 py-2.5 text-[13px] leading-5 text-zinc-200 shadow-2xl"></div>
+<div id="pop" role="tooltip" aria-live="polite" class="rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur px-3.5 py-2.5 text-[13px] leading-5 text-zinc-200 shadow-2xl"></div>
 <div class="relative max-w-6xl mx-auto px-4 sm:px-6 pb-16">
 
   <header class="flex items-center justify-between pt-6 sm:pt-8">
@@ -58,7 +44,7 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
         <div class="text-[11px] text-zinc-500 whitespace-nowrap">US Sell Put Playbook</div>
       </div>
     </div>
-    <a href="https://x.com/0xVeryBigOrange" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-[12px] sm:text-[13px] text-zinc-200 transition whitespace-nowrap">
+    <a href="https://x.com/0xVeryBigOrange" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-[12px] sm:text-[13px] text-zinc-200 transition whitespace-nowrap">
       <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
       <span class="hidden sm:inline">关注</span>@0xVeryBigOrange
     </a>
@@ -130,22 +116,22 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
 
   <!-- Controls -->
   <section class="sticky top-0 z-20 -mx-4 sm:-mx-6 mt-6 px-4 sm:px-6 py-3 bg-[#09090b]/85 backdrop-blur border-b border-white/5">
-    <div id="tabs" class="mb-3 grid grid-cols-2 sm:inline-grid sm:w-auto gap-1 p-1 rounded-2xl bg-white/[.04] border border-white/10">
-      <button data-tab="value" class="tab rounded-xl px-5 py-2 text-[14px] font-semibold transition">📈 价值股 <span class="cnt text-[12px] opacity-60"></span></button>
-      <button data-tab="crypto" class="tab rounded-xl px-5 py-2 text-[14px] font-semibold transition">₿ Crypto <span class="cnt text-[12px] opacity-60"></span></button>
+    <div id="tabs" role="tablist" aria-label="板块" class="mb-3 grid grid-cols-2 sm:inline-grid sm:w-auto gap-1 p-1 rounded-2xl bg-white/[.04] border border-white/10">
+      <button data-tab="value" role="tab" class="tab rounded-xl px-5 py-2 text-[14px] font-semibold transition">📈 价值股 <span class="cnt text-[12px] opacity-60"></span></button>
+      <button data-tab="crypto" role="tab" class="tab rounded-xl px-5 py-2 text-[14px] font-semibold transition">₿ Crypto <span class="cnt text-[12px] opacity-60"></span></button>
     </div>
     <div class="flex items-center gap-3 justify-between">
-      <div id="sorts" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
+      <div id="sorts" role="group" aria-label="排序方式" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
       <label class="shrink-0 flex items-center gap-2 text-[13px] text-zinc-300 cursor-pointer select-none">
         <span class="hidden sm:inline">避开财报</span><span class="sm:hidden">避财报</span>
-        <input id="noearn" type="checkbox" class="peer sr-only">
+        <input id="noearn" type="checkbox" class="peer sr-only" aria-label="避开到期前有财报的标的">
         <span class="w-10 h-6 rounded-full bg-white/10 relative transition peer-checked:bg-brand after:content-[''] after:absolute after:top-1 after:left-1 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"></span>
       </label>
     </div>
   </section>
 
   <div id="coins" class="hidden mt-5 grid grid-cols-2 gap-3"></div>
-  <div id="list" class="mt-5 grid gap-4 md:grid-cols-2"></div>
+  <div id="list" aria-live="polite" class="mt-5 grid gap-4 md:grid-cols-2"></div>
   <div id="empty" class="hidden text-center text-zinc-500 py-16"></div>
 
   <!-- Method -->
@@ -166,261 +152,17 @@ tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','PingFang SC','Hiragin
         <li><b class="text-zinc-200">价值股</b>：约 50 只美股大盘公司，剔除自由现金流为负、股东权益为负、亏损的公司。综合分 = 质量 30 + 估值 30 + 波动率 20 + 跌幅 20。</li>
         <li><b class="text-zinc-200">合约</b>：30–45 天到期（优先月度合约），Delta 约 −0.25；同一区间里优先选买卖价差 ≤ 15% 的行权价。</li>
         <li><b class="text-zinc-200">Crypto 板块</b>：不套用剔除规则。综合分 = 年化 30 + IV 溢价 20 + 跌幅 25 + 期权流动性 25。mNAV = 市值 ÷（公司公告持币数 × 币价）。</li>
-        <li>数据来自 Yahoo Finance（期权约延迟 15 分钟），美股交易日盘中每小时、收盘后各自动刷新一次；拿不到的数据显示“暂无”。</li>
+        <li>数据来自 Yahoo Finance（期权约延迟 15 分钟），美股交易日盘中约每 30 分钟、收盘后各自动刷新；拿不到的数据显示“暂无”。</li>
       </ul>
     </div>
   </section>
 
   <footer class="mt-10 text-center text-[12px] text-zinc-500 leading-6">
     <p class="text-zinc-400">⚠️ 仅供学习参考，不构成投资建议。卖出 Put 有被行权接股、股价继续下跌的风险，请量力而行。</p>
-    <p class="mt-2">Made with 🍊 by <a class="text-brand-soft hover:underline" href="https://x.com/0xVeryBigOrange" target="_blank" rel="noopener">@0xVeryBigOrange</a> · <a class="hover:underline" href="https://github.com/0xVeryBigOrange/us-option-strategy" target="_blank" rel="noopener">GitHub</a></p>
+    <p class="mt-2">Made with 🍊 by <a class="text-brand-soft hover:underline" href="https://x.com/0xVeryBigOrange" target="_blank" rel="noopener noreferrer">@0xVeryBigOrange</a> · <a class="hover:underline" href="https://github.com/0xVeryBigOrange/us-option-strategy" target="_blank" rel="noopener noreferrer">GitHub</a></p>
   </footer>
 </div>
 
-<script>
-const GLOSS={
-  ann:'年化收益：假设到期没被行权，这笔权利金按占用资金折算成一年的收益率 = 单次收益 × 365 ÷ 剩余天数。只是换算，不代表一年真能赚这么多。',
-  per:'单次收益：这一笔交易真正赚到的比例 = 权利金 ÷（行权价 − 权利金）。',
-  otm:'安全垫：现价跌到行权价需要的跌幅。到期时股价只要高于行权价，就不会被行权。',
-  cost:'盈亏平衡价（接货价）= 行权价 − 权利金。被行权后这是你每股的真实成本，股价低于它才算亏。',
-  cash:'现金担保：卖 1 张 Put 需要预留的现金 = 行权价 × 100。这样即使被行权也有钱接货，不加杠杆。',
-  pitm:'行权概率：用期权价格（隐含波动率）反推的、到期股价低于行权价的概率。是市场定价，不是预测。',
-  delta:'Delta：股价每涨跌 $1，这张期权价格变化多少。Put 的 Delta 绝对值也常被当作粗略的行权概率。',
-  iv:'隐含波动率（IV）：期权价格里反映的未来一年预期波动幅度。IV 越高，权利金越贵。',
-  ivhv:'IV 溢价 = 隐含波动率 ÷ 过去一年真实波动率。大于 1 代表期权比历史波动贵，卖方更占便宜。',
-  dd:'距高点：现价相对过去一年最高价的跌幅。',
-  fpe:'远期 PE：现价 ÷ 分析师预期的未来 12 个月每股盈利。越低越便宜，但要看预期是否靠谱。',
-  mnav:'mNAV = 公司市值 ÷ 所持币的价值。小于 1 表示股价低于手里的币值，大于 1 表示有溢价。',
-  spr:'买卖价差：（卖一 − 买一）÷ 中间价。价差越小越容易按中间价成交。',
-  oi:'持仓量：这个合约目前未平仓的张数，越大流动性越好。',
-  score:'综合分（满分 100）：价值股 = 质量 30 + 估值 30 + 波动率 20 + 跌幅 20；Crypto = 年化 30 + IV 溢价 20 + 跌幅 25 + 流动性 25。',
-  adr:'ADR 溢价：美股 ADR 价格相对本土股价（按汇率和换股比例折算）贵多少。海力士 ADR 10 份 = 1 股首尔普通股，目前无法自由互换，所以长期有溢价；溢价收窄时 ADR 会额外下跌。',
-  coin:'ETF 跟踪币价本身，没有市盈率等估值指标。',
-};
-const SORTS={value:[['score','综合推荐'],['ann','年化收益'],['otm','安全垫'],['pitm','行权概率低'],['dd','跌幅'],['val','估值'],['ivhv','IV 溢价']],
-              crypto:[['score','综合推荐'],['ann','年化收益'],['otm','安全垫'],['pitm','行权概率低'],['dd','跌幅'],['ivhv','IV 溢价'],['liq','流动性']]};
-const CN={BTC:'比特币',ETH:'以太坊'};
-const HOLIDAYS=['2026-11-26','2026-12-25','2027-01-01','2027-01-18','2027-02-15','2027-03-26','2027-05-31','2027-06-18','2027-07-05','2027-09-06','2027-11-25','2027-12-24'];
-const HALF=['2026-11-27','2026-12-24'];
-let DATA=null, sortKey='score', noEarn=false, tab=location.hash==='#crypto'?'crypto':'value';
-const $=s=>document.querySelector(s);
-const na='<span class="text-zinc-600">暂无</span>';
-const f=(v,d=2)=>v==null?null:Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
-const fp=v=>v==null?'—':(Math.round(v*100)%100===0?f(v,0):f(v,2)); // 价格：整数不带小数
-const pr=v=>v==null?'—':(Math.abs(v*100-Math.round(v*100))>1e-6?f(v,3):f(v,2));          // 权利金：保留到分，半分显示 3 位
-const pct=(v,d=1,sign=false)=>v==null?na:(sign&&v>0?'+':'')+f(v,d)+'%';
-const usd=(v,d=2)=>v==null?na:'$'+f(v,d);
-const md=s=>{if(!s)return null;const[y,m,d]=s.split('-');return `${+m}/${+d}`};
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const T=(k,label)=>`<span class="tip-t" data-tip="${k}">${label}</span>`;
-
-/* ---------- 市场状态（按美东时间） ---------- */
-function etParts(d){const p=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',weekday:'short',hour12:false}).formatToParts(d);const o={};p.forEach(x=>o[x.type]=x.value);return o}
-function marketState(now=new Date()){
-  const o=etParts(now), day=`${o.year}-${o.month}-${o.day}`, m=(+o.hour%24)*60+(+o.minute);
-  if(o.weekday==='Sat'||o.weekday==='Sun')return {open:false,txt:'美股休市（周末）'};
-  if(HOLIDAYS.includes(day))return {open:false,txt:'美股休市（假日）'};
-  const close=HALF.includes(day)?13*60:16*60;
-  if(m>=570&&m<close)return {open:true,txt:'美股交易中'};
-  if(m>=240&&m<570)return {open:false,txt:'美股盘前'};
-  if(m>=close&&m<20*60)return {open:false,txt:'美股盘后'};
-  return {open:false,txt:'美股休市'};
-}
-const fmtTZ=(iso,tz)=>new Intl.DateTimeFormat('zh-CN',{timeZone:tz,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(iso)).replace(/\//g,'-');
-function ago(iso){const m=Math.round((Date.now()-new Date(iso))/60000);if(m<1)return '刚刚';if(m<60)return m+' 分钟前';const h=Math.floor(m/60);if(h<48)return h+' 小时前';return Math.floor(h/24)+' 天前'}
-function renderStatus(){
-  if(!DATA)return;
-  const st=marketState(), age=(Date.now()-new Date(DATA.updated_utc))/60000;
-  const stale = st.open && age>100;
-  const dot = st.open?'bg-emerald-400 animate-pulse':'bg-zinc-500';
-  $('#status').innerHTML=`<span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-zinc-200"><span class="w-1.5 h-1.5 rounded-full ${dot}"></span>${st.txt}</span>
-    <span>数据更新 <b class="text-zinc-200 num">${fmtTZ(DATA.updated_utc,'Asia/Singapore')}</b> 新加坡 · <span class="num">${fmtTZ(DATA.updated_utc,'America/New_York')}</span> 美东 · ${ago(DATA.updated_utc)}</span>
-    <span>期权报价：${DATA.session==='盘中'?'盘中实时（约延迟 15 分钟）':'美东 '+md(DATA.price_asof)+' 收盘价'}</span>
-    ${stale?'<span class="rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 px-2 py-0.5">⚠️ 数据超过 1.5 小时未更新，可能延迟</span>':''}
-    <span class="text-zinc-600">交易日每小时自动更新</span>`;
-}
-
-/* ---------- 排序 ---------- */
-function sortItems(a){
-  const k=sortKey, v=x=>{
-    if(k==='dd')return x.dd??0;
-    if(k==='val')return x.fpe>0?x.fpe:1e9;
-    if(k==='liq')return x.spr??1e9;
-    if(k==='pitm')return x.pitm??1e9;
-    return -(x[k]??-1e9);
-  };
-  return [...a].sort((x,y)=>v(x)-v(y));
-}
-
-function metric(label,val,sub){
-  return `<div class="rounded-xl bg-white/[.03] border border-white/5 px-3 py-2.5 min-w-0">
-    <div class="text-[11px] text-zinc-500">${label}</div>
-    <div class="mt-0.5 text-[15px] font-semibold text-zinc-100 num truncate">${val}</div>${sub?`<div class="text-[11px] text-zinc-500 num">${sub}</div>`:''}</div>`;
-}
-
-/* 价格刻度：接货价 — 行权价 — 现价 */
-function ladder(x){
-  if(!x.px||!x.k||!x.cost)return '';
-  const lo=x.cost*0.97, hi=x.px*1.01, pos=v=>((v-lo)/(hi-lo)*100).toFixed(1);
-  return `<div class="mt-4">
-    <div class="relative h-1.5 rounded-full bg-gradient-to-r from-rose-500/50 via-amber-400/40 to-emerald-400/50">
-      <span class="absolute -top-1 w-3.5 h-3.5 rounded-full bg-rose-400 ring-2 ring-[#111] -translate-x-1/2" style="left:${pos(x.cost)}%"></span>
-      <span class="absolute -top-1 w-3.5 h-3.5 rounded-full bg-brand ring-2 ring-[#111] -translate-x-1/2" style="left:${pos(x.k)}%"></span>
-      <span class="absolute -top-1 w-3.5 h-3.5 rounded-full bg-white ring-2 ring-[#111] -translate-x-1/2" style="left:${pos(x.px)}%"></span>
-    </div>
-    <div class="mt-2 flex justify-between text-[11px] num">
-      <span class="text-rose-300">接货价 $${fp(x.cost)}</span><span class="text-brand-soft">行权价 $${fp(x.k)}</span><span class="text-zinc-200">现价 $${fp(x.px)}</span>
-    </div></div>`;
-}
-
-function card(x,i){
-  const crypto=!!x.kind;
-  const chips=[];
-  if(x.ein) chips.push(`<span class="rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap">⚡ ${md(x.earn)} ${x.earn_est?'预计':''}财报</span>`);
-  else if(x.earn) chips.push(`<span class="text-[11px] text-zinc-600 whitespace-nowrap">财报 ${md(x.earn)}${x.earn_est?'（预计）':''}</span>`);
-  if(x.spr!=null&&x.spr>15) chips.push(`<span class="rounded-full bg-rose-400/10 text-rose-300 border border-rose-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap">价差大</span>`);
-  if(x.short_hist) chips.push(`<span class="rounded-full bg-sky-400/10 text-sky-300 border border-sky-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap" title="美股 ${x.listed} 上市，波动率和高点按上市以来计算">美股上市不足一年</span>`);
-  if(x.quote==='last') chips.push(`<span class="text-[11px] text-zinc-500">用最近成交价</span>`);
-  const rankCls = i<3?'bg-brand text-black':'bg-white/10 text-zinc-300';
-  const disc = x.px&&x.cost?(1-x.cost/x.px)*100:null;
-  let m6;
-  if(x.kind==='etf') m6=metric(T('coin','对应 '+x.coin), usd(x.coin_px,0), '估值指标不适用');
-  else if(x.kind==='treasury') m6=metric(T('mnav','mNAV'), x.mnav==null?na:f(x.mnav,2)+'×', x.hold_amt?`持 ${f(x.hold_amt,0)} ${x.coin}`:'持币数据暂无');
-  else m6=metric(T('fpe','远期PE'), x.fpe==null?na:(x.fpe<0?'亏损':f(x.fpe,1)+'×'), crypto?(x.tpe?'当前 '+f(x.tpe,1)+'×':'当前亏损'):(x.fpe_local!=null?`按${x.adr_local}股价 ${f(x.fpe_local,1)}×`:'FCF 收益率 '+(x.fcfy==null?'暂无':x.fcfy+'%')));
-  const adrTag = x.adr_prem!=null?`<span class="ml-1 rounded-md bg-white/5 border border-white/10 px-1.5 py-px text-[10px] text-zinc-400 whitespace-nowrap tip-t" data-tip="adr">ADR 溢价 ${f(x.adr_prem,0)}%</span>`:'';
-  const label = x.label?`<span class="ml-1 rounded-md bg-white/5 border border-white/10 px-1.5 py-px text-[10px] text-zinc-400 whitespace-nowrap">${esc(x.label)}</span>`:'';
-  const premC=x.prem*100, nm=esc(x.t);
-  // 极端情景：到期再跌 30%
-  const crash=x.px*0.7, lossPut=Math.max(0,(x.cost-crash)*100), lossStock=x.px*0.3*100;
-  return `<article class="card rounded-3xl p-5 flex flex-col">
-    <div class="flex items-start justify-between gap-3">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-8 h-8 shrink-0 rounded-lg ${rankCls} grid place-items-center text-sm font-extrabold num">${i+1}</div>
-        <div class="min-w-0">
-          <div class="flex items-baseline gap-2 flex-wrap"><span class="text-xl font-extrabold text-white tracking-tight">${nm}</span>
-            <span class="text-[13px] text-zinc-300 num">$${fp(x.px)}</span>
-            <span class="text-[12px] num ${x.w1>=0?'text-emerald-400':'text-rose-400'}">${pct(x.w1,1,true)}<span class="text-zinc-600"> 5日</span></span>
-            <span class="text-[12px] text-zinc-500 num">${T('dd',x.short_hist?'距上市高点':'距高点')} ${pct(x.dd)}</span></div>
-          <div class="text-[12px] text-zinc-500 truncate">${esc(x.n)}${label}${adrTag}</div>
-        </div>
-      </div>
-      <div class="text-right shrink-0">
-        <div class="text-[10px] tracking-wider text-zinc-500">${T('score','综合分')}</div>
-        <div class="text-lg font-bold text-zinc-200 num">${x.score}</div>
-      </div>
-    </div>
-
-    <div class="mt-5 flex items-end justify-between gap-3">
-      <div>
-        <div class="text-[12px] text-zinc-500">${T('ann','权利金年化收益')}</div>
-        <div class="ann text-[52px] leading-none font-extrabold tracking-tight num">${x.ann==null?'—':f(x.ann,1)}<span class="text-3xl">%</span></div>
-        <div class="mt-1.5 text-[12px] text-zinc-400 num">${T('per','单次收益')} <b class="text-zinc-200">${pct(x.per,2)}</b> · ${x.dte} 天后到期</div>
-      </div>
-      <div class="text-right pb-1 flex flex-col items-end gap-1">${chips.join('')}</div>
-    </div>
-
-    <div class="mt-4 rounded-2xl bg-brand/[.07] border border-brand/20 px-4 py-3 text-[14px] text-zinc-200">
-      卖出 <b class="text-white">${md(x.exp)}</b> 到期 <b class="text-white num">$${fp(x.k)}</b> Put
-      <span class="text-zinc-400">·</span> 收 <b class="text-brand-soft num">$${pr(x.prem)}</b><span class="text-zinc-400">/股</span>
-      <span class="text-zinc-500 num whitespace-nowrap">（$${f(premC,0)}/张）</span>
-      <div class="text-[11px] text-zinc-500 mt-0.5 num">Bid/Ask ${x.bid??'—'}/${x.ask??'—'} · ${T('delta','Delta')} ${x.dl??'暂无'} · ${T('oi','持仓量')} ${x.oi==null?'暂无':f(x.oi,0)}${x.spr!=null?' · '+T('spr','价差')+' '+x.spr+'%':''}</div>
-    </div>
-
-    ${ladder(x)}
-
-    <div class="mt-4 grid grid-cols-3 gap-2">
-      ${metric(T('otm','安全垫'),pct(x.otm),'现价→行权价')}
-      ${metric(T('cost','盈亏平衡价'),'$'+fp(x.cost),disc==null?'':'比现价便宜 '+f(disc,1)+'%')}
-      ${metric(T('cash','现金担保'),x.cash==null?na:'$'+f(x.cash,0),'每张')}
-      ${metric(T('pitm','行权概率'),x.pitm==null?na:'约 '+x.pitm+'%','市场定价')}
-      ${metric(T('ivhv','IV 溢价'),x.ivhv==null?na:f(x.ivhv,2)+'×',`${T('iv','IV')} ${x.iv??'—'}% / 实际 ${x.hv??'—'}%`)}
-      ${m6}
-    </div>
-
-    <div class="mt-4 rounded-2xl bg-white/[.03] border border-white/5 px-4 py-3 text-[13px] leading-6 text-zinc-300">
-      <div class="text-[11px] text-zinc-500 mb-0.5">💡 一句话算账</div>
-      卖 1 张，马上收 <b class="text-brand-soft num">$${f(premC,0)}</b>，账户留 <b class="num">$${f(x.cash,0)}</b> 现金。<br>
-      到期 ${nm} ≥ $${fp(x.k)}：<b class="text-emerald-300">白赚 $${f(premC,0)}</b>（+${f(x.per,2)}%）。<br>
-      到期 ${nm} &lt; $${fp(x.k)}：以 <b class="num">$${fp(x.cost)}</b>/股接 100 股，<b class="text-zinc-100">比现在买便宜 ${f(disc,1)}%</b>。
-      <div class="mt-1.5 text-[12px] text-zinc-500">极端情况：到期再跌 30% 至 $${fp(crash)}，账面浮亏约 $${f(lossPut,0)}（同样情况现在直接买 100 股会亏 $${f(lossStock,0)}）。</div>
-    </div>
-
-    <div class="mt-4 space-y-2 text-[13px] leading-5">
-      <div class="flex gap-2"><span class="shrink-0 mt-0.5 text-[11px] font-bold rounded-md px-1.5 py-0.5 bg-emerald-400/10 text-emerald-300">为什么</span><span class="text-zinc-300">${esc(x.why)}</span></div>
-      <div class="flex gap-2"><span class="shrink-0 mt-0.5 text-[11px] font-bold rounded-md px-1.5 py-0.5 bg-rose-400/10 text-rose-300">风险</span><span class="text-zinc-400">${esc(x.risk)}</span></div>
-    </div>
-  </article>`;
-}
-
-function coinCard(c,k){
-  if(!c)return '';
-  return `<div class="card rounded-2xl p-4"><div class="flex items-center justify-between"><span class="text-[12px] text-zinc-500">${CN[k]} ${k}</span>
-    <span class="text-[12px] num ${c.d7>=0?'text-emerald-400':'text-rose-400'}">7日 ${pct(c.d7,1,true)}</span></div>
-    <div class="mt-1 text-2xl sm:text-3xl font-extrabold text-white num">$${f(c.px,0)}</div>
-    <div class="text-[11px] text-zinc-500 num">30日 ${pct(c.d30,1,true)} · 距一年高点 ${pct(c.dd)}</div></div>`;
-}
-function header(){
-  const d=tab==='crypto'?DATA.crypto:DATA, it=d.items||[];
-  const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
-  $('#s-top5').textContent=d.avg_ann_top5==null?'暂无':d.avg_ann_top5+'%';
-  $('#s-avg').textContent=d.avg_ann==null?'暂无':d.avg_ann+'%';
-  const o=avg(it.map(x=>x.otm).filter(v=>v!=null)); $('#s-otm').textContent=o==null?'暂无':o.toFixed(1)+'%';
-  $('#s-pool').innerHTML=tab==='crypto'?`${it.length}<span class="text-zinc-500 text-xl"> 只</span>`:`${it.length}<span class="text-zinc-500 text-xl"> / ${d.pool_size}</span>`;
-  $('#l-pool').textContent=tab==='crypto'?'Crypto 标的':'入选 / 候选池';
-  $('#l-top5').textContent=tab==='crypto'?'年化最高 5 只平均':'前 5 名平均年化';
-  $('#ctx-label').textContent=tab==='crypto'?'币价':'市场';
-  $('#ctx').textContent=d.context||'暂无';
-  $('#coins').classList.toggle('hidden',tab!=='crypto');
-  if(tab==='crypto')$('#coins').innerHTML=coinCard(d.coins&&d.coins.BTC,'BTC')+coinCard(d.coins&&d.coins.ETH,'ETH');
-  document.querySelectorAll('#tabs .tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
-  $('#sorts').innerHTML=SORTS[tab].map(([k,l])=>`<button data-k="${k}" class="pill shrink-0 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-[13px] text-zinc-300 transition hover:border-white/25 whitespace-nowrap">${l}</button>`).join('');
-}
-function render(){
-  let a=(tab==='crypto'?DATA.crypto.items:DATA.items)||[]; if(noEarn)a=a.filter(x=>!x.ein);
-  a=sortItems(a);
-  $('#list').innerHTML=a.map(card).join('');
-  $('#empty').classList.toggle('hidden',a.length>0);
-  $('#empty').textContent=noEarn?'打开“避开财报”后没有符合的标的':'暂无数据';
-  document.querySelectorAll('#sorts button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===sortKey));
-}
-function skeleton(){
-  $('#list').innerHTML=Array.from({length:6}).map(()=>`<div class="card rounded-3xl p-5 space-y-4"><div class="skel h-6 w-1/2 rounded"></div><div class="skel h-12 w-2/3 rounded"></div><div class="skel h-16 rounded-2xl"></div><div class="grid grid-cols-3 gap-2"><div class="skel h-14 rounded-xl"></div><div class="skel h-14 rounded-xl"></div><div class="skel h-14 rounded-xl"></div></div></div>`).join('');
-}
-
-/* ---------- 名词解释弹窗（点击/悬停） ---------- */
-const pop=$('#pop');
-function showTip(el){
-  const t=GLOSS[el.dataset.tip]; if(!t)return;
-  pop.textContent=t; pop.style.display='block';
-  const r=el.getBoundingClientRect(), w=Math.min(300,window.innerWidth-24);
-  pop.style.maxWidth=w+'px';
-  let left=Math.min(Math.max(12,r.left),window.innerWidth-w-12);
-  let top=r.bottom+8; if(top+pop.offsetHeight>window.innerHeight-8)top=r.top-pop.offsetHeight-8;
-  pop.style.left=left+'px'; pop.style.top=top+'px';
-}
-document.addEventListener('click',e=>{const el=e.target.closest('[data-tip]'); if(el){showTip(el);e.stopPropagation()} else pop.style.display='none'});
-document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]'); if(el&&matchMedia('(hover:hover)').matches)showTip(el)});
-document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]')&&matchMedia('(hover:hover)').matches)pop.style.display='none'});
-window.addEventListener('scroll',()=>pop.style.display='none',{passive:true});
-
-function load(){
-  skeleton();
-  fetch('data.json?t='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{
-    DATA=d; if(!d.crypto)d.crypto={items:[]};
-    document.querySelector('[data-tab=value] .cnt').textContent=d.items.length;
-    document.querySelector('[data-tab=crypto] .cnt').textContent=d.crypto.items.length;
-    renderStatus(); setInterval(renderStatus,60000);
-    header(); render();
-  }).catch(()=>{
-    $('#list').innerHTML='';
-    $('#empty').classList.remove('hidden');
-    $('#empty').innerHTML='数据加载失败 <button onclick="load()" class="ml-2 rounded-full bg-brand text-black px-3 py-1 text-[13px] font-semibold">重试</button>';
-  });
-}
-$('#sorts').onclick=e=>{const b=e.target.closest('button');if(b){sortKey=b.dataset.k;render()}};
-$('#noearn').onchange=e=>{noEarn=e.target.checked;render()};
-$('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(!b||!DATA)return;tab=b.dataset.tab;sortKey='score';history.replaceState(null,'',tab==='crypto'?'#crypto':location.pathname);header();render()};
-load();
-</script>
+<script src="assets/app.js?v=20261122" defer></script>
 </body>
 </html>

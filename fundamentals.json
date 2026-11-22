@@ -1,6 +1,6 @@
 {
  "NVDA": {
-  "_ts": 1795229003.457403,
+  "_ts": 1795327300.7319376,
   "name": "NVIDIA Corporation",
   "sector": "Technology",
   "mcap": 3031172907008,
@@ -25,7 +25,7 @@
   "rec": "buy"
  },
  "GOOGL": {
-  "_ts": 1795229006.118043,
+  "_ts": 1795327301.6827872,
   "name": "Alphabet Inc.",
   "sector": "Communication Services",
   "mcap": 3261475323904,
@@ -50,7 +50,7 @@
   "rec": "strong_buy"
  },
  "META": {
-  "_ts": 1795229007.7957563,
+  "_ts": 1795327302.650764,
   "name": "Meta Platforms, Inc.",
   "sector": "Communication Services",
   "mcap": 1433642336256,
@@ -75,7 +75,7 @@
   "rec": "strong_buy"
  },
  "MSFT": {
-  "_ts": 1795229010.5562198,
+  "_ts": 1795327303.5748026,
   "name": "Microsoft Corporation",
   "sector": "Technology",
   "mcap": 3598139523072,
@@ -100,7 +100,7 @@
   "rec": "strong_buy"
  },
  "AMZN": {
-  "_ts": 1795229014.2650518,
+  "_ts": 1795327304.453141,
   "name": "Amazon.com, Inc.",
   "sector": "Consumer Cyclical",
   "mcap": 2668898811904,
@@ -125,7 +125,7 @@
   "rec": "strong_buy"
  },
  "AAPL": {
-  "_ts": 1795229016.8815835,
+  "_ts": 1795327305.23563,
   "name": "Apple Inc.",
   "sector": "Technology",
   "mcap": 4978144444416,
@@ -150,7 +150,7 @@
   "rec": "buy"
  },
  "NOW": {
-  "_ts": 1795229020.489393,
+  "_ts": 1795327306.0656822,
   "name": "ServiceNow, Inc.",
   "sector": "Technology",
   "mcap": 90931904512,
@@ -175,7 +175,7 @@
   "rec": "strong_buy"
  },
  "CRM": {
-  "_ts": 1795229022.1342924,
+  "_ts": 1795327306.988701,
   "name": "Salesforce, Inc.",
   "sector": "Technology",
   "mcap": 148650262528,
@@ -203,7 +203,7 @@
   "rec": "buy"
  },
  "ADBE": {
-  "_ts": 1795229025.8081295,
+  "_ts": 1795327307.9104562,
   "name": "Adobe Inc.",
   "sector": "Technology",
   "mcap": 84732731392,
@@ -231,7 +231,7 @@
   "rec": "hold"
  },
  "CSCO": {
-  "_ts": 1795229028.4991846,
+  "_ts": 1795327308.8949513,
   "name": "Cisco Systems, Inc.",
   "sector": "Technology",
   "mcap": 357343494144,
@@ -256,7 +256,7 @@
   "rec": "buy"
  },
  "ASML": {
-  "_ts": 1795229031.3797305,
+  "_ts": 1795327312.9175892,
   "name": "ASML Holding N.V. - New York Re",
   "sector": "Technology",
   "mcap": 488023621632,
@@ -281,7 +281,7 @@
   "rec": "strong_buy"
  },
  "MU": {
-  "_ts": 1795229035.0749865,
+  "_ts": 1795327313.7927597,
   "name": "Micron Technology, Inc.",
   "sector": "Technology",
   "mcap": 672642433024,
@@ -309,7 +309,7 @@
   "rec": "strong_buy"
  },
  "CAT": {
-  "_ts": 1795229036.7173157,
+  "_ts": 1795327316.6253738,
   "name": "Caterpillar, Inc.",
   "sector": "Industrials",
   "mcap": 233578954752,
@@ -334,7 +334,7 @@
   "rec": "buy"
  },
  "NFLX": {
-  "_ts": 1795229040.4826076,
+  "_ts": 1795327317.4567401,
   "name": "Netflix, Inc.",
   "sector": "Communication Services",
   "mcap": 232951873536,
@@ -345,21 +345,21 @@
   "book": 7.132,
   "eps": 3.46,
   "tpe": 16.395954,
-  "fpe": 15.042399,
+  "fpe": 15.049981,
   "roe": 0.53463,
   "om": 0.31296,
   "rg": 0.118,
   "earn": 1800392400,
   "earn_est": true,
   "nq_earn": null,
-  "eps0": 3.57147,
-  "eps1": 3.77134,
+  "eps0": 3.55949,
+  "eps1": 3.76944,
   "nfye": 1798675200,
-  "tgt": 84.76326,
+  "tgt": 84.54884,
   "rec": "buy"
  },
  "MELI": {
-  "_ts": 1795229042.1213398,
+  "_ts": 1795327318.215688,
   "name": "MercadoLibre, Inc.",
   "sector": "Consumer Cyclical",
   "mcap": 68694163456,
@@ -384,7 +384,7 @@
   "rec": "buy"
  },
  "FTNT": {
-  "_ts": 1795229043.8699238,
+  "_ts": 1795327319.1235268,
   "name": "Fortinet, Inc.",
   "sector": "Technology",
   "mcap": 91515445248,
@@ -409,7 +409,7 @@
   "rec": "hold"
  },
  "AMAT": {
-  "_ts": 1795229046.5039248,
+  "_ts": 1795327319.8657424,
   "name": "Applied Materials, Inc.",
   "sector": "Technology",
   "mcap": 240166404096,
@@ -434,7 +434,7 @@
   "rec": "strong_buy"
  },
  "KLAC": {
-  "_ts": 1795229050.3111024,
+  "_ts": 1795327320.7022257,
   "name": "KLA Corporation",
   "sector": "Technology",
   "mcap": 165306843136,
@@ -459,7 +459,7 @@
   "rec": "buy"
  },
  "LRCX": {
-  "_ts": 1795229052.0579917,
+  "_ts": 1795327321.9194798,
   "name": "Lam Research Corporation",
   "sector": "Technology",
   "mcap": 228935565312,
@@ -484,7 +484,7 @@
   "rec": "strong_buy"
  },
  "AVGO": {
-  "_ts": 1795229055.7236018,
+  "_ts": 1795327323.1942449,
   "name": "Broadcom Inc.",
   "sector": "Technology",
   "mcap": 1453140738048,
@@ -512,7 +512,7 @@
   "rec": "strong_buy"
  },
  "AMD": {
-  "_ts": 1795229057.4404635,
+  "_ts": 1795327324.0076058,
   "name": "Advanced Micro Devices, Inc.",
   "sector": "Technology",
   "mcap": 702393286656,
@@ -537,7 +537,7 @@
   "rec": "strong_buy"
  },
  "ORCL": {
-  "_ts": 1795229059.1810746,
+  "_ts": 1795327324.7579136,
   "name": "Oracle Corporation",
   "sector": "Technology",
   "mcap": 315480899584,
@@ -565,7 +565,7 @@
   "rec": "strong_buy"
  },
  "DELL": {
-  "_ts": 1795229062.9034808,
+  "_ts": 1795327325.7273788,
   "name": "Dell Technologies Inc.",
   "sector": "Technology",
   "mcap": 176768647168,
@@ -593,7 +593,7 @@
   "rec": "buy"
  },
  "MRVL": {
-  "_ts": 1795229066.560386,
+  "_ts": 1795327327.6924987,
   "name": "Marvell Technology, Inc.",
   "sector": "Technology",
   "mcap": 110023368704,
@@ -621,7 +621,7 @@
   "rec": "strong_buy"
  },
  "CMI": {
-  "_ts": 1795229070.3014655,
+  "_ts": 1795327328.560153,
   "name": "Cummins Inc.",
   "sector": "Industrials",
   "mcap": 55294566400,
@@ -646,13 +646,13 @@
   "rec": "buy"
  },
  "INTU": {
-  "_ts": 1795229074.1209538,
+  "_ts": 1795327329.5196004,
   "name": "Intuit Inc.",
   "sector": "Technology",
   "mcap": 72271306752,
-  "fcf": 8617000000.0,
+  "fcf": 9005000000.0,
   "cash": 5320999936.0,
-  "debt": 7608000000.0,
+  "debt": 7711000064.0,
   "ni": 4815000064.0,
   "book": 70.764,
   "eps": 16.46,
@@ -664,14 +664,14 @@
   "earn": 1795122000,
   "earn_est": false,
   "nq_earn": null,
-  "eps0": 23.62963,
+  "eps0": 23.6237,
   "eps1": 26.91866,
   "nfye": 1816992000,
-  "tgt": 392.66257,
+  "tgt": 391.04968,
   "rec": "buy"
  },
  "QCOM": {
-  "_ts": 1795229077.844549,
+  "_ts": 1795327331.4050007,
   "name": "QUALCOMM Incorporated",
   "sector": "Technology",
   "mcap": 160435798016,
@@ -696,7 +696,7 @@
   "rec": "hold"
  },
  "TXN": {
-  "_ts": 1795229079.5100083,
+  "_ts": 1795327332.4206517,
   "name": "Texas Instruments Incorporated",
   "sector": "Technology",
   "mcap": 241006919680,
@@ -721,11 +721,11 @@
   "rec": "buy"
  },
  "PANW": {
-  "_ts": 1795229083.2501895,
+  "_ts": 1795327333.3206108,
   "name": "Palo Alto Networks, Inc.",
   "sector": "Technology",
   "mcap": 281865715712,
-  "fcf": 4113000000.0,
+  "fcf": 4268000000.0,
   "cash": 3055000064.0,
   "debt": 2712000000.0,
   "ni": 455000000.0,
@@ -746,7 +746,7 @@
   "rec": "buy"
  },
  "TSM": {
-  "_ts": 1795229085.0520694,
+  "_ts": 1795327334.2851756,
   "name": "Taiwan Semiconductor Manufactur",
   "sector": "Technology",
   "mcap": 1652980711424,
@@ -771,7 +771,7 @@
   "rec": "strong_buy"
  },
  "EXPE": {
-  "_ts": 1795229087.8521461,
+  "_ts": 1795327335.2254944,
   "name": "Expedia Group, Inc.",
   "sector": "Consumer Cyclical",
   "mcap": 27860219904,
@@ -796,7 +796,7 @@
   "rec": "buy"
  },
  "GEV": {
-  "_ts": 1795229091.5892324,
+  "_ts": 1795327336.223283,
   "name": "GE Vernova Inc.",
   "sector": "Industrials",
   "mcap": 185096617984,
@@ -814,14 +814,14 @@
   "earn": 1801056600,
   "earn_est": false,
   "nq_earn": null,
-  "eps0": 15.74972,
+  "eps0": 15.67837,
   "eps1": 25.89968,
   "nfye": 1798675200,
-  "tgt": 1167.1349,
+  "tgt": 1162.4033,
   "rec": "strong_buy"
  },
  "ETN": {
-  "_ts": 1795229093.4753273,
+  "_ts": 1795327337.0481987,
   "name": "Eaton Corporation, PLC",
   "sector": "Industrials",
   "mcap": 120951701504,
@@ -842,11 +842,11 @@
   "eps0": 13.79172,
   "eps1": 16.49259,
   "nfye": 1798675200,
-  "tgt": 469.0,
+  "tgt": 469.74075,
   "rec": "buy"
  },
  "V": {
-  "_ts": 1795229095.1870413,
+  "_ts": 1795327338.8827498,
   "name": "Visa Inc.",
   "sector": "Financial Services",
   "mcap": 749809041408,
@@ -871,7 +871,7 @@
   "rec": "strong_buy"
  },
  "MA": {
-  "_ts": 1795229096.9731383,
+  "_ts": 1795327339.656416,
   "name": "Mastercard Incorporated",
   "sector": "Financial Services",
   "mcap": 544999112704,
@@ -896,7 +896,7 @@
   "rec": "strong_buy"
  },
  "UNH": {
-  "_ts": 1795229098.7364845,
+  "_ts": 1795327340.5668008,
   "name": "UnitedHealth Group Incorporated",
   "sector": "Healthcare",
   "mcap": 304513286144,
@@ -918,10 +918,10 @@
   "eps1": 23.47388,
   "nfye": 1798675200,
   "tgt": 478.48,
-  "rec": "buy"
+  "rec": "strong_buy"
  },
  "ACN": {
-  "_ts": 1795229100.395567,
+  "_ts": 1795327341.3690057,
   "name": "Accenture plc",
   "sector": "Technology",
   "mcap": 130653405184,
@@ -930,8 +930,8 @@
   "debt": 13396989952.0,
   "ni": 8367055872.0,
   "book": 53.007,
-  "eps": 14.11,
-  "tpe": 15.674699,
+  "eps": 13.56,
+  "tpe": 16.31047,
   "fpe": 13.89994,
   "roe": 0.26025,
   "om": 0.16419001,
@@ -949,7 +949,7 @@
   "rec": "buy"
  },
  "IBM": {
-  "_ts": 1795229104.0342147,
+  "_ts": 1795327342.216029,
   "name": "International Business Machines",
   "sector": "Technology",
   "mcap": 212122927104,
@@ -974,7 +974,7 @@
   "rec": "buy"
  },
  "PYPL": {
-  "_ts": 1795229105.6807826,
+  "_ts": 1795327343.0528314,
   "name": "PayPal Holdings, Inc.",
   "sector": "Financial Services",
   "mcap": 44265783296,
@@ -999,7 +999,7 @@
   "rec": "hold"
  },
  "NKE": {
-  "_ts": 1795229108.4326866,
+  "_ts": 1795327343.9489899,
   "name": "Nike, Inc.",
   "sector": "Consumer Cyclical",
   "mcap": 48896364544,
@@ -1027,7 +1027,7 @@
   "rec": "hold"
  },
  "LULU": {
-  "_ts": 1795229111.0727537,
+  "_ts": 1795327344.8222866,
   "name": "lululemon athletica inc.",
   "sector": "Consumer Cyclical",
   "mcap": 11886062592,
@@ -1055,7 +1055,7 @@
   "rec": "hold"
  },
  "CMG": {
-  "_ts": 1795229113.842237,
+  "_ts": 1795327346.7734473,
   "name": "Chipotle Mexican Grill, Inc.",
   "sector": "Consumer Cyclical",
   "mcap": 44969861120,
@@ -1076,11 +1076,11 @@
   "eps0": 1.08833,
   "eps1": 1.32336,
   "nfye": 1798675200,
-  "tgt": 40.54839,
+  "tgt": 40.64516,
   "rec": "buy"
  },
  "SBUX": {
-  "_ts": 1795229115.6209507,
+  "_ts": 1795327347.7218347,
   "name": "Starbucks Corporation",
   "sector": "Consumer Cyclical",
   "mcap": 117578506240,
@@ -1105,7 +1105,7 @@
   "rec": "buy"
  },
  "REGN": {
-  "_ts": 1795229118.3332932,
+  "_ts": 1795327348.639875,
   "name": "Regeneron Pharmaceuticals, Inc.",
   "sector": "Healthcare",
   "mcap": 95243403264,
@@ -1116,7 +1116,7 @@
   "book": 333.926,
   "eps": 45.24,
   "tpe": 20.351236,
-  "fpe": 12.948906,
+  "fpe": 12.84823,
   "roe": 0.14948,
   "om": 0.30383,
   "rg": 0.363,
@@ -1124,13 +1124,13 @@
   "earn_est": true,
   "nq_earn": null,
   "eps0": 69.01126,
-  "eps1": 71.10176,
+  "eps1": 71.6589,
   "nfye": 1798675200,
   "tgt": 991.0,
   "rec": "buy"
  },
  "BKNG": {
-  "_ts": 1795229119.9908514,
+  "_ts": 1795327352.5027416,
   "name": "Booking Holdings Inc. Common St",
   "sector": "Consumer Cyclical",
   "mcap": 107769749504,
@@ -1155,7 +1155,7 @@
   "rec": "buy"
  },
  "ADP": {
-  "_ts": 1795229123.7744546,
+  "_ts": 1795327353.3891234,
   "name": "Automatic Data Processing, Inc.",
   "sector": "Technology",
   "mcap": 119102865408,
@@ -1180,7 +1180,7 @@
   "rec": "hold"
  },
  "COST": {
-  "_ts": 1795229126.55458,
+  "_ts": 1795327354.303864,
   "name": "Costco Wholesale Corporation",
   "sector": "Consumer Defensive",
   "mcap": 488395014144,
@@ -1208,7 +1208,7 @@
   "rec": "buy"
  },
  "IBIT": {
-  "_ts": 1795229129.2087066,
+  "_ts": 1795327356.0635943,
   "name": "iShares Bitcoin Trust ETF",
   "sector": null,
   "mcap": null,
@@ -1233,7 +1233,7 @@
   "rec": null
  },
  "ETHA": {
-  "_ts": 1795229129.8134513,
+  "_ts": 1795327356.75317,
   "name": "iShares Ethereum Trust ETF",
   "sector": null,
   "mcap": null,
@@ -1258,7 +1258,7 @@
   "rec": null
  },
  "MSTR": {
-  "_ts": 1795229130.5197952,
+  "_ts": 1795327357.3815362,
   "name": "Strategy Inc",
   "sector": "Technology",
   "mcap": 32931311616,
@@ -1283,7 +1283,7 @@
   "rec": "strong_buy"
  },
  "BMNR": {
-  "_ts": 1795229132.1864362,
+  "_ts": 1795327358.1569788,
   "name": "BitMine Immersion Technologies,",
   "sector": "Financial Services",
   "mcap": 8131333632,
@@ -1311,7 +1311,7 @@
   "rec": "strong_buy"
  },
  "COIN": {
-  "_ts": 1795229136.2569475,
+  "_ts": 1795327359.067204,
   "name": "Coinbase Global, Inc.",
   "sector": "Financial Services",
   "mcap": 26997925888,
@@ -1322,7 +1322,7 @@
   "book": 52.653,
   "eps": -2.77,
   "tpe": null,
-  "fpe": 41.532936,
+  "fpe": 42.497772,
   "roe": -0.046830002,
   "om": 0.00124,
   "rg": -0.342,
@@ -1330,13 +1330,13 @@
   "earn_est": false,
   "nq_earn": null,
   "eps0": -0.2824,
-  "eps1": 2.45516,
+  "eps1": 2.39942,
   "nfye": 1798675200,
   "tgt": 192.63705,
   "rec": "buy"
  },
  "HOOD": {
-  "_ts": 1795229139.9875011,
+  "_ts": 1795327360.049442,
   "name": "Robinhood Markets, Inc.",
   "sector": "Financial Services",
   "mcap": 55983542272,
@@ -1361,7 +1361,7 @@
   "rec": "buy"
  },
  "CRCL": {
-  "_ts": 1795229141.861099,
+  "_ts": 1795327361.117549,
   "name": "Circle Internet Group, Inc.",
   "sector": "Financial Services",
   "mcap": 12188837888,
@@ -1386,7 +1386,7 @@
   "rec": "buy"
  },
  "MARA": {
-  "_ts": 1795229144.6324282,
+  "_ts": 1795327361.931274,
   "name": "MARA Holdings, Inc.",
   "sector": "Financial Services",
   "mcap": 1969961600,
@@ -1411,7 +1411,7 @@
   "rec": "buy"
  },
  "IREN": {
-  "_ts": 1795229146.3486001,
+  "_ts": 1795327362.7221894,
   "name": "IREN LIMITED",
   "sector": "Financial Services",
   "mcap": 5015904256,
@@ -1436,14 +1436,14 @@
   "rec": "buy"
  },
  "SKHY": {
-  "_ts": 1795211872.819205,
+  "_ts": 1795327355.280763,
   "name": "SK hynix Inc.",
   "sector": "Technology",
   "mcap": 730347995136,
-  "fcf": 90873828608.22743,
-  "cash": 85058517007.49756,
-  "debt": 13470678157.833252,
-  "ni": 140374365587.9619,
+  "fcf": 91411812253.02676,
+  "cash": 85562073330.60791,
+  "debt": 13550426140.770264,
+  "ni": 141205398174.4834,
   "book": 32.66647,
   "eps": 18.07,
   "tpe": 5.7315993,

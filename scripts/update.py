@@ -40,6 +40,27 @@ CRYPTO = {
 }
 HOLDINGS = os.path.join(ROOT, "holdings.json")
 TOP_N = 20
+# 美股休市日 / 提前收盘日（NYSE，2026-2027）。每年底更新一次。
+HOLIDAYS = {"2026-11-26", "2026-12-25", "2027-01-01", "2027-01-18", "2027-02-15", "2027-03-26", "2027-05-31",
+            "2027-06-18", "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24"}
+HALF_DAYS = {"2026-11-27", "2026-12-24", "2027-11-26"}
+MAX_SPREAD = 0.50   # 买卖价差超过 50% 的报价视为无效（中间价不可信）
+MAX_ANN = 400.0     # 年化超过 400% 视为异常报价
+CARRY_DAYS = 3      # 本次拿不到有效报价时，沿用上次数据的最长天数
+
+
+def market_session(now_et):
+    """返回 ('open'|'pre'|'post'|'closed', 当日收盘时间)。"""
+    day = now_et.date().isoformat()
+    if now_et.weekday() >= 5 or day in HOLIDAYS:
+        return "closed", None
+    close = dt.time(13, 0) if day in HALF_DAYS else dt.time(16, 0)
+    t = now_et.time()
+    if t < dt.time(9, 30):
+        return "pre", close
+    if t < close:
+        return "open", close
+    return "post", close
 R = 0.04            # 无风险利率（Black-Scholes 用）
 TARGET_DELTA = -0.25
 N = NormalDist()
@@ -143,13 +164,14 @@ def load_fund(force=False):
 def pick_put(t, S, today):
     T_ = yf.Ticker(t)
     exps = retry(lambda: T_.options)
-    cand = [e for e in exps if 30 <= (dt.date.fromisoformat(e) - today).days <= 45]
-    if not cand:
-        cand = [e for e in exps if 25 <= (dt.date.fromisoformat(e) - today).days <= 52]
-    if not cand:
+    days = lambda e: (dt.date.fromisoformat(e) - today).days
+    is_monthly = lambda e: dt.date.fromisoformat(e).weekday() == 4 and 15 <= dt.date.fromisoformat(e).day <= 21
+    # 优先月度合约（流动性最好）：25–52 天内的月度合约；没有再用 30–45 天的周度合约
+    monthly = [e for e in exps if 25 <= days(e) <= 52 and is_monthly(e)]
+    weekly = [e for e in exps if 30 <= days(e) <= 45] or [e for e in exps if 25 <= days(e) <= 52]
+    if not (monthly or weekly):
         return None
-    monthly = [e for e in cand if dt.date.fromisoformat(e).weekday() == 4 and 15 <= dt.date.fromisoformat(e).day <= 21]
-    e = (monthly or cand)[0]
+    e = min(monthly, key=lambda x: abs(days(x) - 37)) if monthly else weekly[0]
     dte = (dt.date.fromisoformat(e) - today).days
     ch = retry(lambda: T_.option_chain(e))
     p, c = ch.puts.copy(), ch.calls
@@ -161,14 +183,15 @@ def pick_put(t, S, today):
             ivs.append(float(row.impliedVolatility.values[0]))
     atm = float(np.mean(ivs)) if ivs else None
     Ty = dte / 365
-    q = p[(p.bid > 0) & (p.ask > 0) & (p.strike < S)].copy()
+    # 只用有效双边报价：买一 > 0、卖一 ≥ 买一、价差 ≤ 50%。盘前/假日的 0 买价或离谱报价一律不用
+    q = p[(p.bid > 0) & (p.ask >= p.bid) & (p.strike < S)].copy()
     quote = "mid"
-    if q.empty:  # 非交易时段 bid/ask 可能为 0，退而用最近成交价
-        q = p[(p.lastPrice > 0) & (p.strike < S)].copy()
-        quote = "last"
-        if q.empty:
-            return None
-    q["prem"] = (q.bid + q.ask) / 2 if quote == "mid" else q.lastPrice
+    if q.empty:
+        return None
+    q["prem"] = (q.bid + q.ask) / 2
+    q = q[(q.ask - q.bid) / q.prem <= MAX_SPREAD]
+    if q.empty:
+        return None
     def sig(iv):
         if 0.05 < iv < 5:
             return iv
@@ -179,13 +202,13 @@ def pick_put(t, S, today):
         return None
     q["delta"] = [bs_put_delta(S, k, Ty, s) for k, s in zip(q.strike, q.sig)]
     # 在 Delta -0.20 ~ -0.30 之间优先选买卖价差 ≤15% 的合约（中间价更可能成交），再取最接近 -0.25 的
-    q["spr_"] = (q.ask - q.bid) / ((q.ask + q.bid) / 2) if quote == "mid" else 0
+    q["spr_"] = (q.ask - q.bid) / q.prem
     band = q[(q.delta <= -0.20) & (q.delta >= -0.30)]
     good = band[band.spr_ <= 0.15]
     pool = good if len(good) else q
     row = pool.iloc[(pool.delta - TARGET_DELTA).abs().argsort()[:1]].iloc[0]
     K, prem = float(row.strike), float(row.prem)
-    if prem <= 0 or prem >= K:
+    if prem <= 0 or prem >= K or prem / (K - prem) * 365 / dte * 100 > MAX_ANN:
         return None
     return dict(exp=e, dte=dte, k=K, bid=num(row.bid), ask=num(row.ask), prem=num(prem, 3), quote=quote,
                 pitm=num(bs_pitm(S, K, Ty, float(row.sig)) * 100, 0),
@@ -347,6 +370,25 @@ def base_row(t, f, s, today, n_hv=252):
     return r
 
 
+SCORE_KEYS = {"why", "risk", "rank", "score", "sq", "sv", "si", "sd", "sa", "sl", "liq"}
+
+
+def carry(t, old_items, old_upd, today):
+    """本次拿不到有效报价时，沿用上次（≤3 天、合约未临近到期）的整行数据，并标记“报价沿用”。"""
+    o = old_items.get(t)
+    if not o or not old_upd:
+        return None
+    upd = dt.datetime.fromisoformat(old_upd.replace("Z", "+00:00"))
+    if (dt.datetime.now(dt.timezone.utc) - upd).days >= CARRY_DAYS:
+        return None
+    if (dt.date.fromisoformat(o["exp"]) - today).days < 21:
+        return None
+    r = {k: v for k, v in o.items() if k not in SCORE_KEYS}
+    r["stale_q"] = r.get("stale_q") or upd.astimezone(SGT).strftime("%m-%d %H:%M")
+    print("carry", t, "from", r["stale_q"])
+    return r
+
+
 def pctl(d, col, i, asc=True):
     v = d[col].rank(pct=True, ascending=asc).iloc[i]
     return 0.0 if pd.isna(v) else float(v)
@@ -358,7 +400,8 @@ def clean(r):
     return r
 
 
-def build_value(px, fund, today, notes):
+def build_value(px, fund, today, notes, old_items=None, old_upd=None):
+    old_items = old_items or {}
     rows = []
     for t in POOL:
         f = fund.get(t)
@@ -370,7 +413,7 @@ def build_value(px, fund, today, notes):
         if (f.get("fcf") is not None and f["fcf"] <= 0) or (f.get("book") is not None and f["book"] <= 0) \
                 or (f.get("ni") is not None and f["ni"] <= 0) or (f.get("eps") is not None and f["eps"] <= 0):
             print("filtered", t); continue
-        r = base_row(t, f, s, today)
+        r = base_row(t, f, s, today) or carry(t, old_items, old_upd, today)
         if r and t in SHORT_HISTORY and len(s) < 252:
             r["short_hist"], r["listed"] = True, str(s.index[0].date())
         if r and t in ADR:
@@ -420,7 +463,8 @@ def build_value(px, fund, today, notes):
     return items, len(rows)
 
 
-def build_crypto(px, fund, today, notes, coins):
+def build_crypto(px, fund, today, notes, coins, old_items=None, old_upd=None):
+    old_items = old_items or {}
     hold = json.load(open(HOLDINGS)) if os.path.exists(HOLDINGS) else {}
     rows = []
     for t, meta in CRYPTO.items():
@@ -429,6 +473,9 @@ def build_crypto(px, fund, today, notes, coins):
             print("skip(no data)", t); continue
         r = base_row(t, fund.get(t), s, today)
         if not r:
+            r = carry(t, old_items, old_upd, today)
+            if r:
+                rows.append(r)
             continue
         r.update(kind=meta["kind"], coin=meta["coin"], label=meta["label"])
         if meta["kind"] == "etf":
@@ -446,6 +493,7 @@ def build_crypto(px, fund, today, notes, coins):
             cpx = float(cs[cs.index <= sd].iloc[-1]) if (cs.index <= sd).any() else float(cs.iloc[-1])
             r["mnav"] = num(r["mcap"] / (h["amount"] * cpx), 2)
             r["hold_amt"], r["hold_asof"], r["hold_src"] = h["amount"], h["asof"], h["src"]
+            r["hold_age"] = (today - dt.date.fromisoformat(h["asof"])).days
         rows.append(r); print("ok", t, r["k"], r["prem"], r["ann"], r.get("mnav"), flush=True)
         time.sleep(0.3)
     if not rows:
@@ -489,13 +537,16 @@ def main():
                         dd=num((s.iloc[-1] / s.iloc[-365:].max() - 1) * 100, 1),
                         asof=str(s.index[-1].date()))
 
-    items, passed = build_value(px, fund, today, notes)
+    old_upd = (old or {}).get("updated_utc")
+    old_v = {x["t"]: x for x in (old or {}).get("items", [])}
+    old_c = {x["t"]: x for x in ((old or {}).get("crypto") or {}).get("items", [])}
+    items, passed = build_value(px, fund, today, notes, old_v, old_upd)
     old_n = len(old["items"]) if old else 0
     need = max(10, int(min(old_n, TOP_N) * 0.6))
     if len(items) < need:
         print(f"FAIL: only {len(items)} rows (< {need}); keep old data.json"); sys.exit(2)
 
-    crypto = build_crypto(px, fund, today, notes, coins)
+    crypto = build_crypto(px, fund, today, notes, coins, old_c, old_upd)
     if len(crypto) < 4:
         print(f"WARN: crypto only {len(crypto)} rows; keep old crypto section")
         old_c = (old or {}).get("crypto")
@@ -511,7 +562,8 @@ def main():
     mk = {k: dict(px=num(px[k].dropna().iloc[-1]), w1=chg(px[k], 5), m1=chg(px[k], 21),
                   dd=num((px[k].dropna().iloc[-1] / px[k].dropna().iloc[-252:].max() - 1) * 100, 1)) for k in idx}
     et_now = now.astimezone(ET)
-    session = "盘中" if et_now.weekday() < 5 and dt.time(9, 30) <= et_now.time() <= dt.time(16, 0) else "非交易时段"
+    sess, _ = market_session(et_now)
+    session = "盘中" if sess == "open" else "非交易时段"
     ctx = (f"标普500 近5日 {mk['SPY']['w1']:+.1f}%（距一年高点 {mk['SPY']['dd']:.1f}%），"
            f"纳指100 近5日 {mk['QQQ']['w1']:+.1f}%，半导体 SMH 近一月 {mk['SMH']['m1']:+.1f}%（距高点 {mk['SMH']['dd']:.1f}%），"
            f"VIX {mk['^VIX']['px']:.1f}。")

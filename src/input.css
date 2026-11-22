@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义样式（原内联 <style>） */
+body{font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
+  .glow{background:radial-gradient(60% 50% at 50% 0%,rgba(255,122,26,.18),transparent 70%)}
+  .num{font-variant-numeric:tabular-nums}
+  .ann{background:linear-gradient(180deg,#ffb26b 0%,#ff7a1a 60%,#f05a00 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.07);transition:border-color .2s,transform .2s}
+  .card:hover{border-color:rgba(255,122,26,.35);transform:translateY(-2px)}
+  .tab{color:#a1a1aa}.tab[aria-selected="true"]{background:#fff;color:#09090b;box-shadow:0 4px 18px rgba(255,255,255,.08)}
+  .pill[aria-pressed="true"]{background:#ff7a1a;color:#111;border-color:#ff7a1a}
+  #list>article{min-width:0}
+  @media(max-width:767px){#list{grid-template-columns:minmax(0,1fr)}}
+  .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
+  .tip{border-bottom:1px dotted rgba(255,255,255,.3);cursor:help}
+  .tip-t{cursor:help;border-bottom:1px dashed rgba(255,255,255,.22)}
+  .tip-t:hover{color:#ffb26b}
+  #pop{position:fixed;z-index:60;max-width:300px;display:none}
+  .skel{background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.08),rgba(255,255,255,.04));background-size:200% 100%;animation:sk 1.4s infinite}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  details>summary{list-style:none}details>summary::-webkit-details-marker{display:none}
+  details[open] .chev{transform:rotate(180deg)}

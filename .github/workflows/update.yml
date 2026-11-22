@@ -2,10 +2,14 @@ name: Update data
 
 on:
   schedule:
-    # 美股交易日（周一至周五）盘中每小时 + 收盘后一次，时间为 UTC
-    # 冬令时(EST)常规交易 14:30–21:00 UTC；夏令时(EDT) 13:30–20:00 UTC
-    - cron: "40 14-20 * * 1-5"   # 盘中每小时（开盘后，避开盘前无效报价）
-    - cron: "30 21 * * 1-5"      # 收盘后
+    # GitHub 定时任务高峰期常被延迟/丢弃，所以每次运行会在盘中循环刷新（约每 30 分钟），
+    # 收盘后再刷新一次再退出（见 scripts/session.py）。下面几个 cron 只负责“启动/接力”，时间为 UTC，
+    # 同时覆盖冬令时（开盘 14:30 UTC）与夏令时（开盘 13:30 UTC）。
+    - cron: "35 13 * * 1-5"
+    - cron: "35 16 * * 1-5"
+    - cron: "35 19 * * 1-5"
+    - cron: "30 21 * * 1-5"
+    - cron: "30 22 * * 1-5"
   workflow_dispatch:
     inputs:
       refresh_fund:
@@ -13,8 +17,7 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: write
+permissions: {}
 
 concurrency:
   group: update-data
@@ -23,37 +26,24 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 350
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Generate data.json
-        id: gen
-        run: |
-          ARGS=""
-          if [ "${{ inputs.refresh_fund }}" = "true" ]; then ARGS="--refresh-fund"; fi
-          if python scripts/update.py $ARGS; then
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::warning::数据更新失败（可能被 Yahoo 限流），保留旧的 data.json"
-            git checkout -- data.json 2>/dev/null || true
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Commit
+      - name: Refresh during the trading session
+        env:
+          REFRESH_FUND: ${{ inputs.refresh_fund }}
+          EVENT: ${{ github.event_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data.json fundamentals.json
-          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
-          git commit -m "data: update $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git pull --rebase origin main || true
-          git push
-      - name: Flag failed refresh
-        if: steps.gen.outputs.ok != 'true'
-        run: |
-          echo "::error::数据更新失败，网站仍显示上一次的数据"
-          exit 1
+          ARGS=()
+          if [ "$REFRESH_FUND" = "true" ]; then ARGS+=(--refresh-fund); fi
+          if [ "$EVENT" = "workflow_dispatch" ]; then ARGS+=(--force); fi
+          python scripts/session.py "${ARGS[@]}"

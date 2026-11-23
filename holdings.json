@@ -1,4 +1,4 @@
 {
- "MSTR": {"coin": "BTC", "amount": 850849, "asof": "2026-11-15", "src": "https://www.stocktitan.net/sec-filings/MSTR/8-k-strategy-inc-reports-material-event-f1d981342dcb.html", "note": "Strategy 8-K（2026-11-16）"},
- "BMNR": {"coin": "ETH", "amount": 6077745, "asof": "2026-11-15", "src": "https://www.sec.gov/Archives/edgar/data/1829311/000149315226052063/ex99-1.htm", "note": "Bitmine 新闻稿 / SEC 8-K Ex99.1（2026-11-16）"}
+ "MSTR": {"coin": "BTC", "amount": 851305, "asof": "2026-11-22", "src": "https://www.sec.gov/Archives/edgar/data/1050446/000119312526470961/0001193125-26-470961.txt", "note": "Strategy 8-K（2026-11-23，11/16–11/22 买入 457 BTC）"},
+ "BMNR": {"coin": "ETH", "amount": 6085564, "asof": "2026-11-22", "src": "https://www.sec.gov/Archives/edgar/data/1829311/000149315226053668/ex99-1.htm", "note": "Bitmine 新闻稿 / SEC 8-K Ex99.1（2026-11-23，当周买入 7,819 ETH）"}
 }

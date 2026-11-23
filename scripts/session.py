@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""交易时段刷新器（由 GitHub Actions 调用）。
+"""单次刷新器（由 GitHub Actions 调用）。
 
-GitHub 的定时任务在高峰期经常延迟甚至丢弃，单靠“每小时一个 cron”盘中实际只跑了一两次。
-所以改为：一次 Actions 运行在盘中循环刷新（约每 30 分钟一次），收盘后再刷一次就退出。
-多个 cron 只是“启动/接力”，任何一个准时触发都能覆盖剩下的交易时段。
+每次触发只做“该不该刷新 → 刷新一次 → 告诉工作流下一次什么时候再来”，几十秒就结束：
+  - 盘中：数据超过 20 分钟就刷新；
+  - 收盘后：收盘 10 分钟后补一次收盘数据；
+  - 周末/假日：只有数据超过 20 小时（比如上次收盘那次被丢了）才补一次；
+  - 盘前 / 不需要刷新：直接退出。
+触发来源（任何一个准时就行，多个同时来也只会刷新一次）：
+  1) 外部定时器（cron-job.org）每 30 分钟调 workflow_dispatch —— 主力；
+  2) 本工作流的“接力”：盘中每次跑完会自己再派发一次，等 ~30 分钟后再刷新；
+  3) GitHub 自带的 schedule —— 备份。
 
-退出码：至少成功刷新一次或本来就不需要刷新 → 0；所有尝试都失败 → 1。
+输出（写入 $GITHUB_OUTPUT）：next_wait=N 表示 N 分钟后应再刷新一次（0 = 今天不用再接力）。
+退出码：刷新失败 → 1（工作流标红）；其余 → 0。
 """
 import datetime as dt, json, os, subprocess, sys, time
 from zoneinfo import ZoneInfo
@@ -14,14 +21,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from update import market_session, DATA  # noqa: E402
 
 ET = ZoneInfo("America/New_York")
-INTERVAL = 30 * 60                       # 盘中刷新间隔
-BUDGET = int(os.environ.get("SESSION_BUDGET_MIN", "330")) * 60   # 单次运行最长时间（Actions 上限 6 小时）
-PRE_WAIT = 80 * 60                       # 开盘前 80 分钟内启动的，就等到开盘
-START = time.time()
-
-
-def now_et():
-    return dt.datetime.now(dt.timezone.utc).astimezone(ET)
+INTERVAL = 30          # 分钟：盘中刷新间隔
+FRESH = 20             # 分钟：数据比这更新就不重复刷新（多个触发撞车时只刷一次）
+PRE_CHAIN = 90         # 分钟：开盘前这么久以内被触发，就接力到开盘后
 
 
 def last_update():
@@ -50,61 +52,55 @@ def refresh(extra):
         return True
     sh("git", "commit", "-q", "-m", f"data: update {dt.datetime.now(dt.timezone.utc):%Y-%m-%d %H:%M} UTC")
     for i in range(3):
-        if subprocess.run(["git", "pull", "--rebase", "-q", "origin", "main"]).returncode == 0 and \
+        if subprocess.run(["git", "pull", "--rebase", "-q", "-X", "theirs", "origin", "main"]).returncode == 0 and \
                 subprocess.run(["git", "push", "-q", "origin", "HEAD:main"]).returncode == 0:
             return True
+        subprocess.run(["git", "rebase", "--abort"], capture_output=True)
         time.sleep(10 * (i + 1))
     print("::error::推送失败", flush=True)
     return False
 
 
+def decide(now_utc, lu, force=False):
+    """返回 (要不要刷新, 刷新后/不刷新时的接力等待分钟数, 说明)。纯函数，便于测试。"""
+    n = now_utc.astimezone(ET)
+    sess, close = market_session(n)
+    age = (now_utc - lu).total_seconds() / 60 if lu else 1e9
+    if sess == "open":
+        close_dt = dt.datetime.combine(n.date(), close, ET)
+        to_close = (close_dt - n).total_seconds() / 60
+        if force or age >= FRESH:
+            return True, max(min(INTERVAL, to_close + 12), 5), "盘中"
+        return False, max(min(INTERVAL - age, to_close + 12), 5), f"盘中，数据 {age:.0f} 分钟前刚更新"
+    if sess == "pre":
+        to_open = (dt.datetime.combine(n.date(), dt.time(9, 35), ET) - n).total_seconds() / 60
+        return force, (to_open if to_open <= PRE_CHAIN else 0), "盘前"
+    if sess == "post":
+        close_dt = dt.datetime.combine(n.date(), close, ET)
+        done = lu and lu >= (close_dt + dt.timedelta(minutes=10)).astimezone(dt.timezone.utc)
+        if done and not force:
+            return False, 0, "已有收盘后数据"
+        if n < close_dt + dt.timedelta(minutes=10):
+            return force, (close_dt + dt.timedelta(minutes=12) - n).total_seconds() / 60, "刚收盘，等收盘报价"
+        return True, 0, "收盘后补一次"
+    # 周末/假日
+    return (force or age >= 20 * 60), 0, "休市"
+
+
 def main():
-    extra = sys.argv[1:]
-    force = "--force" in extra
-    extra = [a for a in extra if a != "--force"]
-    tries = oks = 0
-    while True:
-        n = now_et()
-        sess, close = market_session(n)
-        lu = last_update()
-        age = (dt.datetime.now(dt.timezone.utc) - lu).total_seconds() if lu else 1e9
-        elapsed = time.time() - START
-        if force:
-            pass
-        elif sess == "pre":
-            wait = (dt.datetime.combine(n.date(), dt.time(9, 35), ET) - n).total_seconds()
-            if wait > PRE_WAIT or elapsed + wait > BUDGET:
-                print(f"盘前，距开盘 {wait/60:.0f} 分钟，不等待，退出"); break
-            print(f"盘前，等 {wait/60:.0f} 分钟到开盘后", flush=True); time.sleep(max(wait, 0)); continue
-        elif sess == "closed":
-            # 周末/假日：只有在上一个交易日收盘后的数据缺失时才补一次（例如周五收盘后那次被丢了）
-            if lu and age < 20 * 3600:
-                print("休市且数据已是最新，退出"); break
-            if tries:
-                break
-        elif sess == "post":
-            close_dt = dt.datetime.combine(n.date(), close, ET)
-            if lu and lu >= close_dt.astimezone(dt.timezone.utc) + dt.timedelta(minutes=10):
-                print("已有收盘后数据，退出"); break
-            if n < close_dt + dt.timedelta(minutes=15):   # 收盘后等 15 分钟，拿到收盘报价
-                time.sleep((close_dt + dt.timedelta(minutes=15) - n).total_seconds()); continue
-        elif sess == "open" and age < INTERVAL - 120 and not tries:
-            # 刚刷新过（比如上一个运行刚结束），等到下一个时间点
-            time.sleep(min(INTERVAL - age, max(BUDGET - elapsed, 0))); 
-            if time.time() - START >= BUDGET:
-                break
-            continue
-
-        tries += 1
-        oks += refresh(extra)
-        if force or sess in ("closed", "post"):
-            break
-        if time.time() - START + INTERVAL > BUDGET:
-            print("达到单次运行时长上限，交给下一个定时任务接力"); break
-        time.sleep(INTERVAL)
-
-    print(f"done: {oks}/{tries} 次刷新成功")
-    sys.exit(0 if (tries == 0 or oks > 0) else 1)
+    args = sys.argv[1:]
+    force = "--force" in args
+    extra = [a for a in args if a != "--force"]
+    # 排队的运行可能拿到的是旧代码/旧数据：先同步到最新
+    sh("git", "pull", "-q", "--rebase", "origin", "main", check=False)
+    do, wait, why = decide(dt.datetime.now(dt.timezone.utc), last_update(), force)
+    print(f"{why}：{'刷新' if do else '不刷新'}；接力等待 {wait:.0f} 分钟", flush=True)
+    ok = refresh(extra) if do else True
+    out = os.environ.get("GITHUB_OUTPUT")
+    if out:
+        with open(out, "a") as f:
+            f.write(f"next_wait={int(round(wait))}\n")
+    sys.exit(0 if ok else 1)
 
 
 if __name__ == "__main__":

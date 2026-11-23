@@ -27,7 +27,7 @@ mNAV = 市值 ÷（持币数量 × 币价），持币数量来自公司公告，
 - 价差宽降排名：买卖价差 >25% 的合约留在榜上但综合分打折，25%→50% 乘数从 1.0 线性降到 0.6（先按原始分选出前 20，再按打折分排名次）
 
 ## 自动更新
-GitHub Actions（`.github/workflows/update.yml`）在美股交易日启动 `scripts/session.py`：盘中约每 30 分钟运行一次 `scripts/update.py`，收盘后再运行一次，用 yfinance 拉取数据生成 `data.json` 并提交（GitHub 定时任务常被延迟，所以用一次运行内循环刷新、多个 cron 接力）。拉取失败时保留旧数据。节假日表在 `scripts/update.py` 和 `assets/app.js` 里（`HOLIDAYS`），每年底更新一次。
+GitHub Actions（`.github/workflows/update.yml`）每次运行只做一次 `scripts/session.py`：盘中数据超过 20 分钟就运行 `scripts/update.py` 刷新，收盘 10 分钟后再补一次，盘前/休市/刚刷新过就直接退出，约 1 分钟结束。触发来源：外部定时器（cron-job.org，每 30 分钟调用 workflow_dispatch，token 只存在 cron-job.org，不在仓库里）、盘中“接力”（每次跑完用运行自带的 GITHUB_TOKEN 派发下一次）、GitHub 自带 schedule（备份）。多个同时来也只刷新一次。拉取失败时保留旧数据。节假日表在 `scripts/update.py` 和 `assets/app.js` 里（`HOLIDAYS`），每年底更新一次。
 
 手动刷新：Actions → Update data → Run workflow。
 可在 `notes.json` 里为某只股票手写理由/风险覆盖自动生成的句子：`{"MU": {"why": "...", "risk": "..."}}`

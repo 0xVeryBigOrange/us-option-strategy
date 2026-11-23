@@ -19,10 +19,6 @@ on:
         description: "强制刷新基本面缓存"
         type: boolean
         default: false
-      chain_test:
-        description: "test"
-        type: boolean
-        default: false
       wait_min:
         description: "接力用：先等多少分钟再刷新（手动运行请保持 0）"
         type: string
@@ -79,10 +75,10 @@ jobs:
           if [ "$REFRESH_FUND" = "true" ]; then ARGS+=(--refresh-fund); fi
           python scripts/session.py "${ARGS[@]}"
       - name: Chain next refresh
-        if: ${{ !cancelled() && (inputs.chain_test || (steps.run.outputs.next_wait != '' && steps.run.outputs.next_wait != '0')) }}
+        if: ${{ !cancelled() && steps.run.outputs.next_wait != '' && steps.run.outputs.next_wait != '0' }}
         env:
           GH_TOKEN: ${{ github.token }}
-          NEXT: ${{ inputs.chain_test && '1' || steps.run.outputs.next_wait }}
+          NEXT: ${{ steps.run.outputs.next_wait }}
         run: |
           # 已经有别的运行在排队/等待（另一条接力或外部触发），就不再重复派发
           OTHERS=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow update.yml --limit 20 \

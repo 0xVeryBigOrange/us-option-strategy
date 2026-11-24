@@ -12,10 +12,10 @@ const GLOSS={
   dd:'距高点：现价相对过去一年最高价的跌幅。',
   fpe:'远期 PE：现价 ÷ 分析师预期的未来 12 个月每股盈利。越低越便宜，但要看预期是否靠谱。',
   mnav:'mNAV = 公司市值 ÷ 所持币的价值。小于 1 表示股价低于手里的币值，大于 1 表示有溢价。',
-  spr:'买卖价差：（卖一 − 买一）÷ 中间价。价差越小越容易按中间价成交；超过 25% 说明流动性差，综合分会打折、排名下调。',
+  spr:'买卖价差：（卖一 − 买一）÷ 中间价。价差越小越容易按中间价成交；超过 10% 综合分开始轻微下调，超过 25% 算价差宽、明显下调。',
   oi:'持仓量：这个合约目前未平仓的张数，越大流动性越好。',
-  score:'综合分（满分 100）：价值股 = 质量 30 + 估值 30 + 波动率 20 + 跌幅 20；Crypto = 年化 30 + IV 溢价 20 + 跌幅 25 + 流动性 25。买卖价差超过 25% 的会打折降排名（25%→50% 从不打折线性降到 0.6 倍），但仍保留在榜上。',
-  adr:'ADR 溢价：美股 ADR 价格相对本土股价（按汇率和换股比例折算）贵多少。海力士 ADR 10 份 = 1 股首尔普通股，目前无法自由互换，所以长期有溢价；溢价收窄时 ADR 会额外下跌。',
+  score:'综合分（满分 100）：价值股 = 质量 30 + 估值 30 + 波动率 20 + 跌幅 20；Crypto = 年化 30 + IV 溢价 20 + 跌幅 25 + 流动性 25。排名时再乘两个系数：买卖价差（10% 以内不扣，25% 时 0.95，50% 时 0.6）和 ADR 溢价（10% 以内不扣，50% 以上 0.7），只改名次、不影响谁入榜。',
+  adr:'ADR 溢价：美股 ADR 价格相对本土股价（按汇率和换股比例折算）贵多少。海力士 ADR 10 份 = 1 股首尔普通股，目前无法自由互换，所以长期有溢价；溢价收窄时 ADR 会额外下跌。溢价超过 10% 综合分开始打折，到 50% 降到 0.7 倍；估值（远期PE、FCF 收益率）按本土股价算，避免重复扣分。',
   coin:'ETF 跟踪币价本身，没有市盈率等估值指标。',
 };
 const SORTS={value:[['score','综合推荐'],['ann','年化收益'],['otm','安全垫'],['pitm','行权概率低'],['dd','跌幅'],['val','估值'],['ivhv','IV 溢价']],
@@ -121,7 +121,7 @@ function card(x,i){
   const chips=[];
   if(x.ein) chips.push(`<span class="rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap">⚡ ${md(x.earn)} ${x.earn_est?'预计':''}财报</span>`);
   else if(x.earn) chips.push(`<span class="text-[11px] text-zinc-600 whitespace-nowrap">财报 ${md(x.earn)}${x.earn_est?'（预计）':''}</span>`);
-  if(x.spr_mult!=null&&x.spr_mult<1) chips.push(`<span class="rounded-full bg-rose-400/10 text-rose-300 border border-rose-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap" title="买卖价差超过 25%：流动性差，挂中间价可能成交不了；综合分已 ×${x.spr_mult}、排名下调">价差宽 ${x.spr}%</span>`);
+  if(x.spr!=null&&x.spr>25) chips.push(`<span class="rounded-full bg-rose-400/10 text-rose-300 border border-rose-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap" title="买卖价差超过 25%：流动性差，挂中间价可能成交不了；综合分已 ×${x.spr_mult}、排名下调">价差宽 ${x.spr}%</span>`);
   else if(x.spr!=null&&x.spr>15) chips.push(`<span class="rounded-full bg-rose-400/10 text-rose-300 border border-rose-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap">价差大</span>`);
   if(x.short_hist) chips.push(`<span class="rounded-full bg-sky-400/10 text-sky-300 border border-sky-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap" title="美股 ${x.listed} 上市，波动率和高点按上市以来计算">美股上市不足一年</span>`);
   if(x.stale_q) chips.push(`<span class="rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 px-2 py-0.5 text-[11px] whitespace-nowrap" title="本次刷新没拿到有效报价，沿用上次的数据">报价沿用 ${esc(x.stale_q)}</span>`);
@@ -132,7 +132,7 @@ function card(x,i){
   if(x.kind==='etf') m6=metric(T('coin','对应 '+x.coin), usd(x.coin_px,0), '估值指标不适用');
   else if(x.kind==='treasury') m6=metric(T('mnav','mNAV'), x.mnav==null?na:f(x.mnav,2)+'×', x.hold_amt?`持 ${f(x.hold_amt,0)} ${x.coin}（${md(x.hold_asof)}）`:'持币数据暂无');
   else m6=metric(T('fpe','远期PE'), x.fpe==null?na:(x.fpe<0?'亏损':f(x.fpe,1)+'×'), crypto?(x.tpe?'当前 '+f(x.tpe,1)+'×':'当前亏损'):(x.fpe_local!=null?`按${x.adr_local}股价 ${f(x.fpe_local,1)}×`:'FCF 收益率 '+(x.fcfy==null?'暂无':x.fcfy+'%')));
-  const adrTag = x.adr_prem!=null?`<span class="ml-1 rounded-md bg-white/5 border border-white/10 px-1.5 py-px text-[10px] text-zinc-400 whitespace-nowrap tip-t" data-tip="adr">ADR 溢价 ${f(x.adr_prem,0)}%</span>`:'';
+  const adrTag = x.adr_prem!=null?`<span class="ml-1 rounded-md px-1.5 py-px text-[10px] whitespace-nowrap tip-t ${x.adr_mult!=null&&x.adr_mult<1?'bg-amber-400/10 border border-amber-400/20 text-amber-300':'bg-white/5 border border-white/10 text-zinc-400'}" data-tip="adr">ADR 溢价 ${f(x.adr_prem,0)}%${x.adr_mult!=null&&x.adr_mult<1?' · 分 ×'+x.adr_mult:''}</span>`:'';
   const label = x.label?`<span class="ml-1 rounded-md bg-white/5 border border-white/10 px-1.5 py-px text-[10px] text-zinc-400 whitespace-nowrap">${esc(x.label)}</span>`:'';
   const premC=x.prem*100, nm=esc(x.t);
   // 极端情景：到期再跌 30%
@@ -151,7 +151,7 @@ function card(x,i){
       </div>
       <div class="text-right shrink-0">
         <div class="text-[10px] tracking-wider text-zinc-500">${T('score','综合分')}</div>
-        <div class="text-lg font-bold text-zinc-200 num">${x.score}</div>${x.spr_mult!=null&&x.spr_mult<1&&x.score_raw!=null?`<div class="text-[10px] text-rose-300/80 num whitespace-nowrap" title="价差宽，综合分 ${x.score_raw} × ${x.spr_mult}">原 ${x.score_raw}</div>`:''}
+        <div class="text-lg font-bold text-zinc-200 num">${x.score}</div>${x.score_raw!=null&&x.score_raw!==x.score?`<div class="text-[10px] text-rose-300/80 num whitespace-nowrap" title="原始综合分 ${x.score_raw}${x.spr_mult!=null&&x.spr_mult<1?' × 价差 '+x.spr_mult:''}${x.adr_mult!=null&&x.adr_mult<1?' × ADR 溢价 '+x.adr_mult:''}">原 ${x.score_raw}</div>`:''}
       </div>
     </div>
 

@@ -29,7 +29,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍊</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=20261123">
+<link rel="stylesheet" href="assets/site.css?v=20261125">
 </head>
 <body class="text-zinc-200 font-sans min-h-screen">
 <div class="glow absolute inset-x-0 top-0 h-[520px] pointer-events-none"></div>
@@ -110,7 +110,7 @@
       <div><b class="text-zinc-200">行权概率</b>：根据期权价格反推、到期时股价低于行权价的概率。是市场定价，不是预测。</div>
       <div><b class="text-zinc-200">IV 溢价</b>：期权隐含波动率 ÷ 过去一年真实波动率。大于 1 说明期权偏贵，卖方更划算。</div>
       <div><b class="text-zinc-200">现金担保</b>：卖 1 张要在账户里留的钱 = 行权价 × 100。</div>
-      <div><b class="text-zinc-200">综合分</b>：质量、估值、波动率、跌幅加权打分（Crypto 板块看年化、IV、跌幅、流动性）；买卖价差超过 25% 的会打折降排名。点任何带虚线的名词都能看解释。</div>
+      <div><b class="text-zinc-200">综合分</b>：质量、估值、波动率、跌幅加权打分（Crypto 板块看年化、IV、跌幅、流动性）；买卖价差大、ADR 溢价高的会乘系数降排名。点任何带虚线的名词都能看解释。</div>
     </div>
   </details>
 
@@ -150,7 +150,7 @@
       <h3 class="text-white font-bold mb-3">筛选方法</h3>
       <ul class="text-[13px] leading-6 text-zinc-400 space-y-1.5">
         <li><b class="text-zinc-200">价值股</b>：约 50 只美股大盘公司，剔除自由现金流为负、股东权益为负、亏损的公司。综合分 = 质量 30 + 估值 30 + 波动率 20 + 跌幅 20。</li>
-        <li><b class="text-zinc-200">价差宽降排名</b>：期权买卖价差超过 25% 说明流动性差，挂中间价可能成交不了。这类合约仍保留在榜上（标“价差宽”），但综合分打折：价差 25% 不打折，到 50% 线性降到 0.6 倍；价差超过 50% 的报价不采用。两个板块都适用。</li>
+        <li><b class="text-zinc-200">排名系数</b>：综合分最后再乘两个系数，只改名次、不影响谁入榜。① 买卖价差：10% 以内不扣，10%→25% 轻微降到 0.95 倍，25%→50% 降到 0.6 倍（超过 25% 标“价差宽”，挂中间价可能成交不了；超过 50% 的报价不采用）。② ADR 溢价（如海力士 SKHY）：比本土普通股贵 10% 以内不扣，10%→50% 降到 0.7 倍——等于多付溢价买同一家公司，溢价收窄会额外下跌；同时估值按本土股价算，避免重复扣分。卡片上的“原 xx”是乘系数前的分数。</li>
         <li><b class="text-zinc-200">合约</b>：30–45 天到期（优先月度合约），Delta 约 −0.25；同一区间里优先选买卖价差 ≤ 15% 的行权价。</li>
         <li><b class="text-zinc-200">Crypto 板块</b>：不套用剔除规则。综合分 = 年化 30 + IV 溢价 20 + 跌幅 25 + 期权流动性 25。mNAV = 市值 ÷（公司公告持币数 × 币价）。</li>
         <li>数据来自 Yahoo Finance（期权约延迟 15 分钟），美股交易日盘中约每 30 分钟、收盘后各自动刷新；拿不到的数据显示“暂无”。</li>
@@ -164,6 +164,6 @@
   </footer>
 </div>
 
-<script src="assets/app.js?v=20261123" defer></script>
+<script src="assets/app.js?v=20261125" defer></script>
 </body>
 </html>

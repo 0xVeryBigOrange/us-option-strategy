@@ -421,6 +421,13 @@ def pctl(d, col, i, asc=True):
     return 0.0 if pd.isna(v) else float(v)
 
 
+def ensure_num(d, cols):
+    """缺列补 NaN、统一转成数值（全部沿用旧报价/基本面缺失时，某些列可能不存在或全是 None）。"""
+    for c in cols:
+        d[c] = pd.to_numeric(d[c], errors="coerce") if c in d else np.nan
+    return d
+
+
 def clean(r):
     r = {k: (None if isinstance(v, float) and math.isnan(v) else v) for k, v in r.items()}
     r.pop("ncr", None); r.pop("mcap", None)
@@ -429,7 +436,7 @@ def clean(r):
 
 def build_value(px, fund, today, notes, old_items=None, old_upd=None):
     old_items = old_items or {}
-    rows = []
+    rows, fresh = [], 0
     for t in POOL:
         f = fund.get(t)
         s = px[t].dropna() if t in px else pd.Series(dtype=float)
@@ -440,7 +447,13 @@ def build_value(px, fund, today, notes, old_items=None, old_upd=None):
         if (f.get("fcf") is not None and f["fcf"] <= 0) or (f.get("book") is not None and f["book"] <= 0) \
                 or (f.get("ni") is not None and f["ni"] <= 0) or (f.get("eps") is not None and f["eps"] <= 0):
             print("filtered", t); continue
-        r = base_row(t, f, s, today) or carry(t, old_items, old_upd, today)
+        r = base_row(t, f, s, today)
+        if r:
+            fresh += 1
+        else:
+            r = carry(t, old_items, old_upd, today)
+            if r and r.get("ncr") is None and r.get("nc") is not None and f.get("mcap"):
+                r["ncr"] = r["nc"] * 1e8 / f["mcap"]  # 沿用行不含 ncr，用当前市值补算
         if r and t in SHORT_HISTORY and len(s) < 252:
             r["short_hist"], r["listed"] = True, str(s.index[0].date())
         if r and t in ADR:
@@ -458,8 +471,8 @@ def build_value(px, fund, today, notes, old_items=None, old_upd=None):
             rows.append(r); print("ok", t, r["k"], r["prem"], r["ann"], flush=True)
         time.sleep(0.3)
     if not rows:
-        return [], 0
-    d = pd.DataFrame(rows)
+        return [], 0, 0
+    d = ensure_num(pd.DataFrame(rows), ["roe", "om", "ncr", "rg", "fpe", "fcfy", "ivhv", "iv", "dd", "spr"])
     pr = lambda x, asc=True: x.rank(pct=True, ascending=asc).fillna(0.5)
     qual = (pr(d.roe.clip(upper=100)) + pr(d.om) + pr(d.ncr) + pr(d.rg.clip(upper=100))) / 4
     val = (pr(d.fpe, False) + pr(d.fcfy)) / 2
@@ -491,7 +504,7 @@ def build_value(px, fund, today, notes, old_items=None, old_upd=None):
             r["risk"] = "；".join((wide + extra + rest)[:3])
         r["rank"] = i + 1
         items.append(r)
-    return items, len(rows)
+    return items, len(rows), fresh
 
 
 def build_crypto(px, fund, today, notes, coins, old_items=None, old_upd=None):
@@ -529,7 +542,7 @@ def build_crypto(px, fund, today, notes, coins, old_items=None, old_upd=None):
         time.sleep(0.3)
     if not rows:
         return []
-    d = pd.DataFrame(rows)
+    d = ensure_num(pd.DataFrame(rows), ["spr", "oi", "ann", "ivhv", "dd"])
     pr = lambda x, asc=True: x.rank(pct=True, ascending=asc).fillna(0.5)
     d["liq"] = (pr(d.spr, False) + pr(np.log1p(d.oi.fillna(0)))) / 2
     d["sa"], d["si"], d["sd"], d["sl"] = (pr(d.ann) * 30).round(1), (pr(d.ivhv) * 20).round(1), (pr(-d.dd) * 25).round(1), (d.liq * 25).round(1)
@@ -571,7 +584,10 @@ def main():
     old_upd = (old or {}).get("updated_utc")
     old_v = {x["t"]: x for x in (old or {}).get("items", [])}
     old_c = {x["t"]: x for x in ((old or {}).get("crypto") or {}).get("items", [])}
-    items, passed = build_value(px, fund, today, notes, old_v, old_upd)
+    items, passed, fresh = build_value(px, fund, today, notes, old_v, old_upd)
+    if items and fresh == 0:
+        # 一个新报价都没拿到（全部沿用旧报价）→ 多半是 Yahoo 期权接口限流；不写文件，免得“更新时间”前移而数据没变
+        print("FAIL: no fresh option quotes (all carried); keep old data.json"); sys.exit(2)
     old_n = len(old["items"]) if old else 0
     need = max(10, int(min(old_n, TOP_N) * 0.6))
     if len(items) < need:

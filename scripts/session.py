@@ -41,9 +41,12 @@ def sh(*cmd, check=True):
 
 def refresh(extra):
     """跑一次 update.py；成功就提交推送。返回是否成功。"""
-    ok = subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "update.py"), *extra]).returncode == 0
+    rc = subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "update.py"), *extra]).returncode
+    ok = rc == 0
     if not ok:
-        print("::warning::本次数据更新失败（可能被 Yahoo 限流），保留旧数据", flush=True)
+        # update.py 用退出码 2 表示“拿到的数据不足”（多半是 Yahoo 限流）；其他非 0 是脚本报错，要看日志修代码
+        why = "拿到的数据不足（可能被 Yahoo 限流）" if rc == 2 else f"update.py 出错（退出码 {rc}，见上方日志）"
+        print(f"::warning::本次数据更新失败：{why}，保留旧数据", flush=True)
         sh("git", "checkout", "--", "data.json", "fundamentals.json", check=False)
         return False
     sh("git", "add", "data.json", "fundamentals.json")

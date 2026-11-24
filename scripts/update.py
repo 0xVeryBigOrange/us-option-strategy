@@ -206,8 +206,8 @@ def pick_put(t, S, today):
             ivs.append(float(row.impliedVolatility.values[0]))
     atm = float(np.mean(ivs)) if ivs else None
     Ty = dte / 365
-    # 只用有效双边报价：买一 > 0、卖一 ≥ 买一、价差 ≤ 50%。盘前/假日的 0 买价或离谱报价一律不用
-    q = p[(p.bid > 0) & (p.ask >= p.bid) & (p.strike < S)].copy()
+    # 只用有效双边报价：买一 > 0、卖一 > 买一（买卖价相等多为 Yahoo 残缺快照）、价差 ≤ 50%。盘前/假日的 0 买价或离谱报价一律不用
+    q = p[(p.bid > 0) & (p.ask > p.bid) & (p.strike < S)].copy()
     quote = "mid"
     if q.empty:
         return None

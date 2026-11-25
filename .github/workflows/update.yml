@@ -84,5 +84,11 @@ jobs:
           OTHERS=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow update.yml --limit 20 \
             --json databaseId,status --jq "[.[] | select(.databaseId != ${GITHUB_RUN_ID} and (.status == \"queued\" or .status == \"in_progress\" or .status == \"waiting\" or .status == \"pending\"))] | length")
           if [ "$OTHERS" != "0" ]; then echo "已有 $OTHERS 个运行在排队/进行中，不重复接力"; exit 0; fi
-          gh workflow run update.yml --repo "$GITHUB_REPOSITORY" --ref main -f wait_min="$NEXT"
-          echo "已派发接力：$NEXT 分钟后再刷新"
+          # GitHub API 偶发 HTTP 500：重试 3 次；仍失败只记警告（数据已提交，外部定时器仍会触发），不把整次运行标成失败
+          for i in 1 2 3; do
+            if gh workflow run update.yml --repo "$GITHUB_REPOSITORY" --ref main -f wait_min="$NEXT"; then
+              echo "已派发接力：$NEXT 分钟后再刷新"; exit 0
+            fi
+            sleep $(( i * 10 ))
+          done
+          echo "::warning::接力派发失败（GitHub API 错误），依赖外部定时器/schedule 继续刷新"

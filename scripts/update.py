@@ -599,11 +599,30 @@ def main():
     adr_ex = sorted({a["local"] for a in ADR.values()} | {a["fx"] for a in ADR.values()})
     px = retry(lambda: yf.download(POOL + list(CRYPTO) + idx + cc + adr_ex, period="13mo", auto_adjust=True,
                                    progress=False, threads=True))["Close"]
+    # 多线程下载偶发 yfinance 本地缓存 "database is locked" → 个别代码整列为空；单独重下一次补上
+    miss = [t for t in px.columns if px[t].dropna().empty]
+    if miss:
+        print("re-download empty columns:", miss)
+        try:
+            px2 = yf.download(miss, period="13mo", auto_adjust=True, progress=False, threads=False)["Close"]
+            if isinstance(px2, pd.Series):
+                px2 = px2.to_frame(miss[0])
+            for t in miss:
+                if t in px2.columns and not px2[t].dropna().empty:
+                    px[t] = px2[t].reindex(px.index)
+        except Exception as e:  # noqa: BLE001
+            print("re-download failed:", e)
     asof = px["SPY"].dropna().index[-1].date()
 
     coins = {}
     for c in ("BTC", "ETH"):
         s = px[c + "-USD"].dropna()
+        if s.empty:  # 仍然拿不到 → 沿用上次的币价，不让整次刷新失败
+            prev = ((old or {}).get("crypto") or {}).get("coins", {}).get(c)
+            print(f"WARN: no {c}-USD prices; carry previous")
+            if prev:
+                coins[c] = prev
+            continue
         coins[c] = dict(px=num(s.iloc[-1]), d7=chg(s, 7), d30=chg(s, 30),
                         dd=num((s.iloc[-1] / s.iloc[-365:].max() - 1) * 100, 1),
                         asof=str(s.index[-1].date()))

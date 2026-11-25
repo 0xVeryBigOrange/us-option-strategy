@@ -17,6 +17,8 @@ const GLOSS={
   score:'综合分（满分 100）：价值股 = 质量 30 + 估值 30 + 波动率 20 + 跌幅 20；Crypto = 年化 30 + IV 溢价 20 + 跌幅 25 + 流动性 25。排名时再乘两个系数：买卖价差（10% 以内不扣，25% 时 0.95，50% 时 0.6）和 ADR 溢价（10% 以内不扣，50% 以上 0.7），只改名次、不影响谁入榜。',
   adr:'ADR 溢价：美股 ADR 价格相对本土股价（按汇率和换股比例折算）贵多少。海力士 ADR 10 份 = 1 股首尔普通股，目前无法自由互换，所以长期有溢价；溢价收窄时 ADR 会额外下跌。溢价超过 10% 综合分开始打折，到 50% 降到 0.7 倍；估值（远期PE、FCF 收益率）按本土股价算，避免重复扣分。',
   coin:'ETF 跟踪币价本身，没有市盈率等估值指标。',
+  coinrel:'Crypto 相关公司的利润主要随币价（以及按市价计的持币收益）大起大落，远期市盈率参考意义不大，所以 Crypto 板块不显示远期市盈率；这里看它关联的币价和回撤。',
+  hvc:'过去一年股价的实际波动率。Crypto 相关公司利润随币价大起大落，远期市盈率参考意义不大，所以 Crypto 板块不显示远期市盈率。',
 };
 const SORTS={value:[['score','综合推荐'],['ann','年化收益'],['otm','安全垫'],['pitm','行权概率低'],['dd','跌幅'],['val','估值'],['ivhv','IV 溢价']],
               crypto:[['score','综合推荐'],['ann','年化收益'],['otm','安全垫'],['pitm','行权概率低'],['dd','跌幅'],['ivhv','IV 溢价'],['liq','流动性']]};
@@ -131,6 +133,7 @@ function card(x,i){
   let m6;
   if(x.kind==='etf') m6=metric(T('coin','对应 '+x.coin), usd(x.coin_px,0), '估值指标不适用');
   else if(x.kind==='treasury') m6=metric(T('mnav','mNAV'), x.mnav==null?na:f(x.mnav,2)+'×', x.hold_amt?`持 ${f(x.hold_amt,0)} ${x.coin}（${md(x.hold_asof)}）`:'持币数据暂无');
+  else if(crypto) m6=x.coin?metric(T('coinrel','关联 '+x.coin), usd(x.coin_px,0), x.coin_dd==null?'币价':'较一年高点 '+f(x.coin_dd,0)+'%'):metric(T('hvc','实际波动'), x.hv==null?na:f(x.hv,0)+'%', '过去一年');
   else m6=metric(T('fpe','远期PE'), x.fpe==null?na:(x.fpe<0?'亏损':f(x.fpe,1)+'×'), crypto?(x.tpe?'当前 '+f(x.tpe,1)+'×':'当前亏损'):(x.fpe_local!=null?`按${x.adr_local}股价 ${f(x.fpe_local,1)}×`:'FCF 收益率 '+(x.fcfy==null?'暂无':x.fcfy+'%')));
   const adrTag = x.adr_prem!=null?`<span class="ml-1 rounded-md px-1.5 py-px text-[10px] whitespace-nowrap tip-t ${x.adr_mult!=null&&x.adr_mult<1?'bg-amber-400/10 border border-amber-400/20 text-amber-300':'bg-white/5 border border-white/10 text-zinc-400'}" data-tip="adr">ADR 溢价 ${f(x.adr_prem,0)}%${x.adr_mult!=null&&x.adr_mult<1?' · 分 ×'+x.adr_mult:''}</span>`:'';
   const label = x.label?`<span class="ml-1 rounded-md bg-white/5 border border-white/10 px-1.5 py-px text-[10px] text-zinc-400 whitespace-nowrap">${esc(x.label)}</span>`:'';

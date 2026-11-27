@@ -261,7 +261,7 @@ def pick_put(t, S, today):
                 dl=num(row.delta), piv=num(row.sig * 100, 1), iv=num(atm * 100, 1) if atm else None,
                 otm=num((1 - K / S) * 100, 1), ann=num(prem / (K - prem) * 365 / dte * 100, 1),
                 cost=num(K - prem, 3), cash=int(round(K * 100)),
-                oi=None if pd.isna(row.openInterest) else int(row.openInterest),
+                oi=None if pd.isna(row.openInterest) or int(row.openInterest) <= 0 else int(row.openInterest),  # Yahoo 常把缺失的持仓量返回 0（如 NVDA 实际 4.7 万张），0 视为“暂无”
                 spr=num((row.ask - row.bid) / ((row.ask + row.bid) / 2) * 100, 1) if quote == "mid" else None,
                 vol=None if pd.isna(row.volume) else int(row.volume))
 
@@ -358,8 +358,9 @@ def risks_crypto(r):
         out.insert(0, earn_txt(r))
     if r.get("spr") is not None and r["spr"] > SPR_WIDE:
         out.insert(0, wide_txt(r))
-    elif r.get("spr") is not None and (r["spr"] > 6 or (r["oi"] or 0) < 300):
-        out.append(f"该行权价持仓量 {r['oi'] or 0}、价差 {r['spr']:.1f}%，成交可能有滑点，用限价单")
+    elif r.get("spr") is not None and (r["spr"] > 6 or (r["oi"] is not None and r["oi"] < 300)):
+        oi_txt = f"持仓量 {r['oi']:,}、" if r["oi"] is not None else ""
+        out.append(f"该行权价{oi_txt}价差 {r['spr']:.1f}%，成交可能有滑点，用限价单")
     if r["hv"] and r["hv"] >= 90:
         out.append(f"过去一年实际波动 {r['hv']:.0f}%，可能一个月跌三成")
     return "；".join(out[:2])
@@ -455,6 +456,9 @@ def ensure_num(d, cols):
 def clean(r):
     r = {k: (None if isinstance(v, float) and math.isnan(v) else v) for k, v in r.items()}
     r.pop("ncr", None); r.pop("mcap", None)
+    for k in ("oi", "vol"):  # 有缺失值时 pandas 会把整列变成浮点，这里转回整数
+        if isinstance(r.get(k), float):
+            r[k] = int(r[k])
     return r
 
 
@@ -571,7 +575,7 @@ def build_crypto(px, fund, today, notes, coins, old_items=None, old_upd=None):
         return []
     d = ensure_num(pd.DataFrame(rows), ["spr", "oi", "ann", "ivhv", "dd", "adr_prem"])
     pr = lambda x, asc=True: x.rank(pct=True, ascending=asc).fillna(0.5)
-    d["liq"] = (pr(d.spr, False) + pr(np.log1p(d.oi.fillna(0)))) / 2
+    d["liq"] = (pr(d.spr, False) + pr(np.log1p(d.oi))) / 2  # 持仓量缺失按中性（0.5）处理，不当成 0
     d["sa"], d["si"], d["sd"], d["sl"] = (pr(d.ann) * 30).round(1), (pr(d.ivhv) * 20).round(1), (pr(-d.dd) * 25).round(1), (d.liq * 25).round(1)
     d["score"] = (d.sa + d.si + d.sd + d.sl).round(0).astype(int)
     d = apply_spr_penalty(d)
